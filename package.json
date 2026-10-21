@@ -10,9 +10,6 @@
     "build": "turbo build",
     "build:frontend": "pnpm --filter frontend build",
     "build:backend": "pnpm --filter backend build",
-    "test": "./.agents/scripts/run_tests.sh all",
-    "test:frontend": "./.agents/scripts/run_tests.sh frontend",
-    "test:backend": "./.agents/scripts/run_tests.sh backend",
     "lint": "turbo lint",
     "vercel-build": "turbo build"
   },
