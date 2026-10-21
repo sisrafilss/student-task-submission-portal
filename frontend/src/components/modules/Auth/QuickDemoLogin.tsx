@@ -46,10 +46,10 @@ export default function QuickDemoLogin({
           variant="outline"
           size="sm"
           disabled={disabled}
-          onClick={() => onSelectDemo('instructor@portal.test', 'Password123!')}
+          onClick={() => onSelectDemo('mentor@portal.test', 'Password123!')}
           className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
         >
-          👨‍🏫 <span className="ml-1 truncate">Instructor Demo</span>
+          👨‍🏫 <span className="ml-1 truncate">Mentor Demo</span>
         </Button>
 
         <Button

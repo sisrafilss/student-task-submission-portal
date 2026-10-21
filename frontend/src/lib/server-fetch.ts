@@ -1,4 +1,4 @@
-import { tokenHandler } from '@/services/auth/tokenHandler';
+import { getCookie } from '@/services/auth/tokenHandler';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002/api/v1';
 
@@ -7,7 +7,7 @@ const serverFetchHelper = async (endpoint: string, options: RequestInit): Promis
 
   let accessToken: string | undefined;
   try {
-    accessToken = await tokenHandler.getCookie('accessToken');
+    accessToken = await getCookie('accessToken');
   } catch {
     accessToken = undefined;
   }

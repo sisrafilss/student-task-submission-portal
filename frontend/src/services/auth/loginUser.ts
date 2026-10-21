@@ -3,7 +3,7 @@
 import { getDefaultDashboardRoute, isValidRedirectForRole, type UserRole } from '@/lib/auth-utils';
 import { serverFetch } from '@/lib/server-fetch';
 import { zodValidator } from '@/lib/zodValidator';
-import { tokenHandler } from '@/services/auth/tokenHandler';
+import { setCookie } from '@/services/auth/tokenHandler';
 import { loginValidationZodSchema } from '@/zod/auth.validation';
 import { redirect } from 'next/navigation';
 
@@ -51,22 +51,22 @@ export const loginUser = async (
         if (result.success && result.data) {
           const accessToken = result.data.accessToken || 'demo_access_token';
           const refreshToken = result.data.refreshToken || 'demo_refresh_token';
-          userRole = result.data.user?.role || (email.includes('admin') ? 'ADMIN' : email.includes('instructor') ? 'INSTRUCTOR' : 'STUDENT');
+          userRole = result.data.user?.role || (email.includes('admin') ? 'ADMIN' : email.includes('mentor') ? 'MENTOR' : 'STUDENT');
 
-          await tokenHandler.setCookie('accessToken', accessToken, { maxAge: 60 * 60 * 24 });
-          await tokenHandler.setCookie('refreshToken', refreshToken, { maxAge: 60 * 60 * 24 * 30 });
+          await setCookie('accessToken', accessToken, { maxAge: 60 * 60 * 24 });
+          await setCookie('refreshToken', refreshToken, { maxAge: 60 * 60 * 24 * 30 });
         }
       } else {
         // Fallback for demo users during pure frontend phase
         if (validatedPayload.email === 'student@portal.test' && validatedPayload.password === 'Password123!') {
           userRole = 'STUDENT';
-          await tokenHandler.setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
-        } else if (validatedPayload.email === 'instructor@portal.test' && validatedPayload.password === 'Password123!') {
-          userRole = 'INSTRUCTOR';
-          await tokenHandler.setCookie('accessToken', 'mock_instructor_token', { maxAge: 60 * 60 * 24 });
+          await setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
+        } else if (validatedPayload.email === 'mentor@portal.test' && validatedPayload.password === 'Password123!') {
+          userRole = 'MENTOR';
+          await setCookie('accessToken', 'mock_mentor_token', { maxAge: 60 * 60 * 24 });
         } else if (validatedPayload.email === 'admin@portal.test' && validatedPayload.password === 'Password123!') {
           userRole = 'ADMIN';
-          await tokenHandler.setCookie('accessToken', 'mock_admin_token', { maxAge: 60 * 60 * 24 });
+          await setCookie('accessToken', 'mock_admin_token', { maxAge: 60 * 60 * 24 });
         } else {
           return {
             success: false,
@@ -78,13 +78,13 @@ export const loginUser = async (
       // Backend not yet running in this phase: allow recognized demo credentials
       if (validatedPayload.email === 'student@portal.test' && validatedPayload.password === 'Password123!') {
         userRole = 'STUDENT';
-        await tokenHandler.setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
-      } else if (validatedPayload.email === 'instructor@portal.test' && validatedPayload.password === 'Password123!') {
-        userRole = 'INSTRUCTOR';
-        await tokenHandler.setCookie('accessToken', 'mock_instructor_token', { maxAge: 60 * 60 * 24 });
+        await setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
+      } else if (validatedPayload.email === 'mentor@portal.test' && validatedPayload.password === 'Password123!') {
+        userRole = 'MENTOR';
+        await setCookie('accessToken', 'mock_mentor_token', { maxAge: 60 * 60 * 24 });
       } else if (validatedPayload.email === 'admin@portal.test' && validatedPayload.password === 'Password123!') {
         userRole = 'ADMIN';
-        await tokenHandler.setCookie('accessToken', 'mock_admin_token', { maxAge: 60 * 60 * 24 });
+        await setCookie('accessToken', 'mock_admin_token', { maxAge: 60 * 60 * 24 });
       } else {
         return {
           success: false,

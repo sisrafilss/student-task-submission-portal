@@ -27,6 +27,18 @@ async function main() {
   });
   console.log('🎓 Created Student user:', student);
 
+  // Upsert Mentor
+  const mentor = await prisma.user.upsert({
+    where: { email: 'mentor@portal.test' },
+    update: {},
+    create: {
+      name: 'Tanvir Hossain',
+      email: 'mentor@portal.test',
+      role: 'MENTOR',
+    },
+  });
+  console.log('👨‍🏫 Created Mentor user:', mentor);
+
   const totalUsers = await prisma.user.count();
   console.log(`✅ Seed completed successfully! Total users in database: ${totalUsers}`);
 }
