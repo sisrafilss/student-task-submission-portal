@@ -1,24 +1,27 @@
+import PortalLogo from "@/components/shared/PortalLogo";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, CheckCircle, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle, Code, GraduationCap, LayoutDashboard, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border bg-card/60 backdrop-blur-md">
+      <header className="border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold shadow-sm">
-              <BookOpen className="size-5" />
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Student Portal</span>
-          </div>
+          <PortalLogo size="sm" />
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm">
-              Get Started <ArrowRight className="size-4" />
-            </Button>
+            <ThemeToggle />
+            <Link href="/login">
+              <Button variant="outline" size="sm" className="cursor-pointer">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button size="sm" className="cursor-pointer">
+                Get Started <ArrowRight className="size-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
