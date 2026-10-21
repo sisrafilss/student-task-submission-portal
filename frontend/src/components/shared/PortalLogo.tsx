@@ -4,12 +4,14 @@ interface PortalLogoProps {
   className?: string;
   showText?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  href?: string;
 }
 
 export default function PortalLogo({
   className = '',
   showText = true,
   size = 'md',
+  href = '/',
 }: PortalLogoProps) {
   const iconSizes = {
     sm: 'size-8',
@@ -31,7 +33,7 @@ export default function PortalLogo({
 
   return (
     <Link
-      href="/"
+      href={href}
       className={`inline-flex items-center gap-3 transition-opacity hover:opacity-90 ${className}`}
     >
       {/* Dynamic Modern Emblem combining Graduation Cap + Code Brackets */}
