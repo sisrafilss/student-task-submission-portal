@@ -1,0 +1,64 @@
+# Agents & Automation
+.agents/
+
+# Testing Files (Strictly Git-Excluded)
+__tests__/
+**/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+vitest.config.*
+vitest.setup.*
+coverage/
+.nyc_output/
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment Variables (Except .env.example)
+.env
+.env.*
+!.env.example
+
+# Frontend / Next.js
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+
+# Backend / TypeScript / Bundles
+dist/
+backend/dist/
+backend/build/
+api/
+backend/api/
+
+# Prisma / Database
+*.db
+*.db-journal
+*.sql
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+
+# Turborepo & Vercel
+.turbo/
+.vercel/
+

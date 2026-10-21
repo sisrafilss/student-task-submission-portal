@@ -1,0 +1,23 @@
+{
+  "name": "student-submission-portal",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build": "turbo build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "test": "./.agents/scripts/run_tests.sh all",
+    "test:frontend": "./.agents/scripts/run_tests.sh frontend",
+    "test:backend": "./.agents/scripts/run_tests.sh backend",
+    "lint": "turbo lint",
+    "vercel-build": "turbo build"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.9"
+  }
+}
+
