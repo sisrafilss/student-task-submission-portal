@@ -10,6 +10,25 @@ export const mockAssignments: IAssignment[] = [
     deadline: '2026-03-30T23:59:59.000Z',
     maxScore: 60,
     status: 'OPEN',
+    description: 'Design and deploy a modern, accessible, personal developer portfolio showcasing projects, skills, contact form, and light/dark theme toggle.',
+    requirements: [
+      'Mobile-first responsive layout (375px to 1440px) with zero horizontal overflow',
+      'Hero section with professional introduction, resume download, and social links',
+      'Interactive project showcase cards with live demo and GitHub repository links',
+      'Accessible contact form with client-side validation and toast notifications',
+      'Clean semantic HTML5 structure with high Lighthouse performance score (>90)',
+    ],
+    rubrics: [
+      { criteria: 'Responsive Layout & Modern CSS', marks: 20, description: 'Flawless presentation across mobile, tablet, and desktop' },
+      { criteria: 'Semantic HTML & Accessibility', marks: 15, description: 'Proper ARIA attributes and keyboard navigable elements' },
+      { criteria: 'Interactivity & Theme Toggle', marks: 15, description: 'Smooth dark/light mode toggle and interactive animations' },
+      { criteria: 'Deployment & Clean Git Commits', marks: 10, description: 'Live deployment on Vercel/Netlify with meaningful commits' },
+    ],
+    resources: [
+      { title: 'Figma Design Inspiration', url: 'https://figma.com/@portfolio-showcase', type: 'FIGMA' },
+      { title: 'Starter Template', url: 'https://github.com/programminghero/portfolio-starter', type: 'GITHUB' },
+      { title: 'Tailwind CSS Documentation', url: 'https://tailwindcss.com/docs', type: 'DOCS' },
+    ],
   },
   {
     id: 'assign-2',
@@ -20,6 +39,24 @@ export const mockAssignments: IAssignment[] = [
     deadline: '2026-04-15T23:59:59.000Z',
     maxScore: 60,
     status: 'OPEN',
+    description: 'Build a productivity-focused Kanban task board featuring drag-and-drop mechanics, task filtering by priority, and local persistence.',
+    requirements: [
+      'Kanban columns: To Do, In Progress, Peer Review, Completed',
+      'Drag-and-drop or one-click status transitions with immediate state updates',
+      'Task filtering by priority badges (High, Medium, Low) and text search',
+      'Local storage or mock backend persistence to retain tasks across page reloads',
+      'Accessible modals for creating and editing tasks with date pickers',
+    ],
+    rubrics: [
+      { criteria: 'Core Drag-and-Drop & State Management', marks: 25, description: 'Reliable reordering and state updates without lag' },
+      { criteria: 'Filtering, Search & UX', marks: 15, description: 'Instant search filtering and clear visual indicators' },
+      { criteria: 'Local Persistence & Error Recovery', marks: 10, description: 'Safe error boundary and persistent storage' },
+      { criteria: 'Clean TypeScript Architecture', marks: 10, description: 'Strict typing without any type assertions' },
+    ],
+    resources: [
+      { title: 'Kanban Board UI Kit', url: 'https://figma.com/@kanban-kit', type: 'FIGMA' },
+      { title: 'dnd-kit Guide', url: 'https://dndkit.com', type: 'DOCS' },
+    ],
   },
   {
     id: 'assign-3',
@@ -30,6 +67,24 @@ export const mockAssignments: IAssignment[] = [
     deadline: '2026-05-01T23:59:59.000Z',
     maxScore: 100,
     status: 'OPEN',
+    description: 'A full-stack enterprise e-commerce platform with JWT auth, product catalog, cart/checkout simulation, and an admin dashboard.',
+    requirements: [
+      'Role-based access control (Student/Customer vs Admin/Vendor)',
+      'Product catalog with multifaceted filters (price range, brand, ratings)',
+      'Shopping cart state synchronized with localStorage and server session',
+      'Order checkout simulation with address validation and invoice generation',
+      'Admin analytics dashboard showing sales metrics and inventory tracking',
+    ],
+    rubrics: [
+      { criteria: 'Backend REST API & Database Design', marks: 35, description: 'Modular Express routes, PostgreSQL/MongoDB schemas, and indexes' },
+      { criteria: 'Frontend UX & Cart Workflow', marks: 30, description: 'Snappy cart transitions, responsive layout, and optimistic updates' },
+      { criteria: 'Authentication & Security', marks: 20, description: 'Secure JWT cookies, password hashing, and role guard middleware' },
+      { criteria: 'Deployment & Testing', marks: 15, description: 'Live full-stack deployment with automated API test scripts' },
+    ],
+    resources: [
+      { title: 'TechGear API Documentation', url: 'https://documenter.getpostman.com/techgear-api', type: 'API' },
+      { title: 'E-Commerce Figma Prototype', url: 'https://figma.com/@techgear-store', type: 'FIGMA' },
+    ],
   },
   {
     id: 'assign-4',
@@ -40,6 +95,24 @@ export const mockAssignments: IAssignment[] = [
     deadline: '2026-05-20T23:59:59.000Z',
     maxScore: 100,
     status: 'OPEN',
+    description: 'High-performance CRM dashboard built with Next.js App Router, React 19 Server Components, Server Actions, and Prisma ORM.',
+    requirements: [
+      'Next.js 16 Partial Prerendering and streaming Suspense skeletons',
+      'Server Actions form validation using React 19 useActionState and Zod',
+      'Client data tables with server-driven searchParams pagination and sorting',
+      'Role-based middleware proxy routing protecting admin and student zones',
+      'Dark/Light mode persistence and 100% device responsiveness',
+    ],
+    rubrics: [
+      { criteria: 'Next.js App Router & Server Architecture', marks: 40, description: 'Effective use of Server Components and Server Actions' },
+      { criteria: 'Type Safety & Code Modularization', marks: 25, description: 'Strict typing, one-file-one-component rule, <300 lines limit' },
+      { criteria: 'Design & shadcn/ui Integration', marks: 20, description: 'First-class shadcn component usage and polished design' },
+      { criteria: 'Automated Testing Coverage', marks: 15, description: '100% unit tests and headless browser validation pass rate' },
+    ],
+    resources: [
+      { title: 'NextraCRM Specification', url: 'https://nextjs.org/docs', type: 'DOCS' },
+      { title: 'Database Schema Reference', url: 'https://prisma.io/docs', type: 'DOCS' },
+    ],
   },
 ];
 

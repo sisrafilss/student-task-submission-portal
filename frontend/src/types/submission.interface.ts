@@ -4,6 +4,18 @@ export type SubmissionStatus =
   | 'EVALUATED'
   | 'RESUBMISSION_REQUIRED';
 
+export interface IRubricItem {
+  criteria: string;
+  marks: number;
+  description?: string;
+}
+
+export interface IResourceLink {
+  title: string;
+  url: string;
+  type?: 'FIGMA' | 'GITHUB' | 'DOCS' | 'API';
+}
+
 export interface IAssignment {
   id: string;
   title: string;
@@ -13,6 +25,12 @@ export interface IAssignment {
   deadline: string;
   maxScore: number;
   status: 'OPEN' | 'CLOSED';
+  description?: string;
+  requirements?: string[];
+  rubrics?: IRubricItem[];
+  resources?: IResourceLink[];
+  studentSubmissionStatus?: SubmissionStatus | 'NOT_SUBMITTED';
+  mySubmission?: ISubmission | null;
 }
 
 export interface ISubmission {
