@@ -1,17 +1,23 @@
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+
+const emptySubscribe = () => () => {};
 
 export default function ThemeToggle({ className = '' }: { className?: string }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    const isDark = document.documentElement.classList.contains('dark');
-    setTheme(isDark ? 'dark' : 'light');
-  }, []);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+    return 'light';
+  });
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -30,7 +36,7 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
     }
   };
 
-  if (!mounted) {
+  if (!isClient) {
     return (
       <div
         className={`size-9 rounded-lg border border-border bg-card/60 backdrop-blur-sm ${className}`}
@@ -60,4 +66,3 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
     </button>
   );
 }
-

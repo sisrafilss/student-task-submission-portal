@@ -1,7 +1,7 @@
 import PortalLogo from "@/components/shared/PortalLogo";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, CheckCircle, Code, GraduationCap, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
