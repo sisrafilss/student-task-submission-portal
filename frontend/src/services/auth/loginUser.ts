@@ -4,18 +4,11 @@ import { getDefaultDashboardRoute, isValidRedirectForRole, type UserRole } from 
 import { serverFetch } from '@/lib/server-fetch';
 import { zodValidator } from '@/lib/zodValidator';
 import { setCookie } from '@/services/auth/tokenHandler';
+import { IActionResult } from '@/types/action.interface';
 import { loginValidationZodSchema } from '@/zod/auth.validation';
 import { redirect } from 'next/navigation';
 
-export interface ILoginActionResult {
-  success?: boolean;
-  message?: string;
-  errors?: {
-    field: string;
-    message: string;
-  }[];
-  data?: unknown;
-}
+export type ILoginActionResult = IActionResult;
 
 export const loginUser = async (
   _currentState: ILoginActionResult | null,
