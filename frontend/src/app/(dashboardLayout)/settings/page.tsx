@@ -1,9 +1,28 @@
-export default function SettingsPage() {
+import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
+import { Metadata } from 'next';
+import { getUserInfo } from '@/services/auth/getUserInfo';
+import { getSettings } from '@/services/settings/getSettings';
+import SettingsContainer from '@/components/modules/Settings/SettingsContainer';
+import SettingsSkeleton from '@/components/modules/Settings/SettingsSkeleton';
+
+export const metadata: Metadata = {
+  title: 'Account Settings | Student Submission Portal',
+  description: 'Manage your profile, security, notifications, and portal preferences.',
+};
+
+export default async function SettingsPage() {
+  const user = await getUserInfo();
+
+  if (!user) {
+    redirect('/login?redirect=/settings');
+  }
+
+  const { data: settings } = await getSettings();
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-      <p className="text-sm text-muted-foreground">Under Development</p>
-    </div>
+    <Suspense fallback={<SettingsSkeleton />}>
+      <SettingsContainer initialSettings={settings} />
+    </Suspense>
   );
 }
-
