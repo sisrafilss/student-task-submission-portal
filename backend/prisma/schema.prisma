@@ -25,14 +25,27 @@ enum Gender {
   OTHER
 }
 
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
 model User {
-  id                  String         @id @default(uuid())
-  email               String         @unique
+  id                  String             @id @default(uuid())
+  email               String             @unique
   name                String
   password            String
-  role                UserRole       @default(STUDENT)
-  status              UserStatus     @default(ACTIVE)
-  needsPasswordChange Boolean        @default(false)
+  role                UserRole           @default(STUDENT)
+  status              UserStatus         @default(ACTIVE)
+  needsPasswordChange Boolean            @default(false)
   contactNumber       String?
   gender              Gender?
   avatarUrl           String?
@@ -42,8 +55,12 @@ model User {
   githubUsername      String?
   linkedinUrl         String?
   refreshTokens       RefreshToken[]
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  createdAssignments  Assignment[]       @relation("AssignmentCreator")
+  assignedMentorships AssignmentMentor[]
+  submissionsAsStudent Submission[]      @relation("StudentSubmissions")
+  submissionsAsMentor  Submission[]      @relation("MentorSubmissions")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   @@index([email])
   @@index([role])
@@ -62,4 +79,72 @@ model RefreshToken {
   @@index([userId])
   @@index([token])
   @@map("refresh_tokens")
+}
+
+model Assignment {
+  id           String             @id @default(uuid())
+  title        String
+  description  String             @db.Text
+  batchId      String
+  deadline     DateTime
+  totalMarks   Int                @default(100)
+  rubrics      Json?              @default("[]")
+  maxPerMentor Int                @default(10)
+  status       AssignmentStatus   @default(PUBLISHED)
+  createdById  String
+  createdBy    User               @relation("AssignmentCreator", fields: [createdById], references: [id])
+  mentors      AssignmentMentor[]
+  submissions  Submission[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([batchId])
+  @@index([status])
+  @@map("assignments")
+}
+
+model AssignmentMentor {
+  id                   String     @id @default(uuid())
+  assignmentId         String
+  assignment           Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  mentorId             String
+  mentor               User       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  maxQuota             Int
+  currentAssignedCount Int        @default(0)
+  lastAssignedAt       DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([assignmentId, mentorId])
+  @@index([assignmentId])
+  @@index([mentorId])
+  @@index([assignmentId, currentAssignedCount])
+  @@map("assignment_mentors")
+}
+
+model Submission {
+  id           String           @id @default(uuid())
+  studentId    String
+  student      User             @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  mentorId     String?
+  mentor       User?            @relation("MentorSubmissions", fields: [mentorId], references: [id], onDelete: SetNull)
+  repoUrl      String
+  liveUrl      String?
+  notes        String?          @db.Text
+  status       SubmissionStatus @default(PENDING)
+  marks        Float?
+  feedback     String?          @db.Text
+  submittedAt  DateTime         @default(now())
+  reviewedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+  @@index([mentorId])
+  @@index([assignmentId])
+  @@index([status])
+  @@map("submissions")
 }

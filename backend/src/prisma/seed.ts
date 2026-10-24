@@ -51,6 +51,7 @@ async function main() {
     update: {
       password: defaultHashedPassword,
       role: 'STUDENT',
+      assignedBatchId: 'BATCH-01',
       needsPasswordChange: false,
     },
     create: {
@@ -59,6 +60,7 @@ async function main() {
       password: defaultHashedPassword,
       role: 'STUDENT',
       status: 'ACTIVE',
+      assignedBatchId: 'BATCH-01',
       needsPasswordChange: false,
     },
   });
