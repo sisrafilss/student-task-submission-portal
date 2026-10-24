@@ -11,9 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { logoutUser } from '@/services/auth/logoutUser';
 import { UserInfo } from '@/types/user.interface';
+import { getAvatarInitials } from '@/lib/avatarHelper';
 import { LogOut, Settings, User } from 'lucide-react';
 
 interface UserDropdownProps {
@@ -30,30 +32,55 @@ export default function UserDropdown({ userInfo }: UserDropdownProps) {
     });
   };
 
+  const initials = getAvatarInitials(userInfo.name);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-background p-0 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+        className="inline-flex size-9 items-center justify-center rounded-full border border-border bg-background p-0 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer overflow-hidden"
         aria-label="Open user profile menu"
       >
-        <span className="flex size-full items-center justify-center rounded-full bg-primary/10 font-bold text-sm text-primary">
-          {userInfo.name.charAt(0).toUpperCase()}
-        </span>
+        <Avatar className="size-full">
+          {userInfo.avatarUrl ? (
+            <AvatarImage
+              src={userInfo.avatarUrl}
+              alt={userInfo.name}
+              className="object-cover"
+            />
+          ) : null}
+          <AvatarFallback className="bg-primary/10 font-bold text-xs text-primary">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-1.5">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="p-2 font-normal">
-            <div className="flex flex-col space-y-1.5">
-              <div className="flex items-center justify-between">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {userInfo.name}
-                </p>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
-                  {userInfo.role.toLowerCase()}
-                </Badge>
+            <div className="flex items-center gap-2.5">
+              <Avatar className="size-9 shrink-0 border border-border/80">
+                {userInfo.avatarUrl ? (
+                  <AvatarImage
+                    src={userInfo.avatarUrl}
+                    alt={userInfo.name}
+                    className="object-cover"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-primary/10 font-bold text-xs text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {userInfo.name}
+                  </p>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                    {userInfo.role.toLowerCase()}
+                  </Badge>
+                </div>
+                <p className="truncate text-xs text-muted-foreground">{userInfo.email}</p>
               </div>
-              <p className="truncate text-xs text-muted-foreground">{userInfo.email}</p>
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>

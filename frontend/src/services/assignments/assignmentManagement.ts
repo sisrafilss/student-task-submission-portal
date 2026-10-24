@@ -10,7 +10,11 @@ import {
   IStudentBatchAssignment,
 } from '@/types/assignment.interface';
 import { IAssignment, SubmissionStatus } from '@/types/submission.interface';
-import { createAssignmentValidationSchema } from '@/zod/assignment.validation';
+import {
+  createAssignmentValidationSchema,
+  updateAssignmentValidationSchema,
+} from '@/zod/assignment.validation';
+import { revalidatePath } from 'next/cache';
 import { initialSubmissions, mockAssignments } from '../submissions/mockSubmissions';
 
 export interface IAssignmentStats {
@@ -89,6 +93,114 @@ export const createAssignmentAction = async (
     return {
       success: true,
       message: resData.message || 'Assignment created successfully',
+      data: resData.data,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const updateAssignmentAction = async (
+  assignmentId: string,
+  _prevState: IActionResult | null,
+  formData: FormData
+): Promise<IActionResult> => {
+  try {
+    const rawRubrics = formData.get('rubricsJson')?.toString();
+    const rawMentorQuotas = formData.get('mentorQuotasJson')?.toString();
+
+    let rubrics: IRubricItem[] = [];
+    if (rawRubrics) {
+      try {
+        rubrics = JSON.parse(rawRubrics);
+      } catch {
+        rubrics = [];
+      }
+    }
+
+    let mentorQuotas: IMentorQuotaInput[] = [];
+    if (rawMentorQuotas) {
+      try {
+        mentorQuotas = JSON.parse(rawMentorQuotas);
+      } catch {
+        mentorQuotas = [];
+      }
+    }
+
+    const payload = {
+      title: formData.get('title')?.toString() || '',
+      description: formData.get('description')?.toString() || '',
+      batchId: formData.get('batchId')?.toString() || '',
+      deadline: formData.get('deadline')?.toString() || '',
+      totalMarks: Number(formData.get('totalMarks')) || 100,
+      maxPerMentor: Number(formData.get('maxPerMentor')) || 10,
+      status: formData.get('status')?.toString() || 'PUBLISHED',
+      rubrics,
+      mentorQuotas,
+    };
+
+    const validation = zodValidator(payload, updateAssignmentValidationSchema);
+    if (!validation.success) {
+      return {
+        success: false,
+        message: 'Please resolve the highlighted validation errors',
+        errors: validation.errors,
+        data: payload,
+      };
+    }
+
+    const res = await serverFetch.patch(`/assignments/${assignmentId}`, {
+      body: JSON.stringify(payload),
+    });
+
+    const resData = await res.json();
+
+    if (!res.ok || !resData.success) {
+      return {
+        success: false,
+        message: resData.message || 'Failed to update assignment',
+        errors: resData.errorMessages,
+      };
+    }
+
+    revalidatePath('/admin/assignments');
+
+    return {
+      success: true,
+      message: resData.message || 'Assignment updated successfully',
+      data: resData.data,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : 'An unexpected error occurred',
+    };
+  }
+};
+
+export const deleteAssignmentAction = async (
+  assignmentId: string
+): Promise<IActionResult> => {
+  try {
+    const res = await serverFetch.delete(`/assignments/${assignmentId}`);
+    const resData = await res.json();
+
+    if (!res.ok || !resData.success) {
+      return {
+        success: false,
+        message: resData.message || 'Failed to delete assignment',
+        errors: resData.errorMessages,
+      };
+    }
+
+    revalidatePath('/admin/assignments');
+
+    return {
+      success: true,
+      message: resData.message || 'Assignment and all associated records deleted successfully',
       data: resData.data,
     };
   } catch (err) {

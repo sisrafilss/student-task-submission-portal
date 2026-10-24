@@ -11,7 +11,6 @@ import {
   StudentStatus,
 } from '@/types/student.interface';
 import {
-  createStudentValidationSchema,
   updateStudentValidationSchema,
 } from '@/zod/student.validation';
 import { revalidatePath } from 'next/cache';
@@ -66,69 +65,6 @@ export const getStudents = async (queryString: string = ''): Promise<IStudentLis
     return {
       meta: { page: 1, limit: 10, total: 0, totalPage: 1 },
       data: [],
-    };
-  }
-};
-
-export const createStudent = async (
-  _prevState: IActionResult | null,
-  formData: FormData
-): Promise<IActionResult> => {
-  const payload = {
-    name: formData.get('name')?.toString() || '',
-    email: formData.get('email')?.toString() || '',
-    password: formData.get('password')?.toString() || '',
-    confirmPassword: formData.get('confirmPassword')?.toString() || '',
-    studentId: formData.get('studentId')?.toString() || '',
-    batchId: formData.get('batchId')?.toString() || '',
-    enrolledTrack: formData.get('enrolledTrack')?.toString() || '',
-    contactNumber: formData.get('contactNumber')?.toString() || '',
-    gender: (formData.get('gender')?.toString() as StudentGender) || 'MALE',
-    address: formData.get('address')?.toString() || undefined,
-    status: (formData.get('status')?.toString() as StudentStatus) || 'ACTIVE',
-    githubUsername: formData.get('githubUsername')?.toString() || undefined,
-    linkedinUrl: formData.get('linkedinUrl')?.toString() || undefined,
-  };
-
-  const validation = zodValidator(payload, createStudentValidationSchema);
-  if (!validation.success) {
-    return {
-      success: false,
-      message: 'Please resolve form validation errors',
-      errors: validation.errors,
-      data: payload,
-    };
-  }
-
-  try {
-    const { confirmPassword: _, ...apiPayload } = validation.data;
-    const res = await serverFetch.post('/students', {
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(apiPayload),
-    });
-
-    const result = await res.json();
-    if (!res.ok || !result.success) {
-      return {
-        success: false,
-        message: result.message || 'Failed to create student record',
-        data: payload,
-      };
-    }
-
-    revalidatePath('/admin/students');
-
-    return {
-      success: true,
-      message: result.message || 'Student created successfully!',
-      data: result.data,
-    };
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Network error';
-    return {
-      success: false,
-      message,
-      data: payload,
     };
   }
 };

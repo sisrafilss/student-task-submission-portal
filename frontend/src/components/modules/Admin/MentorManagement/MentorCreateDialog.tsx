@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { createMentor } from '@/services/admin/mentorManagement';
 import { Copy, KeyRound, Loader2, RefreshCw } from 'lucide-react';
 import React, { useActionState, useEffect, useRef, useState } from 'react';
@@ -88,9 +89,10 @@ export default function MentorCreateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form ref={formRef} action={formAction} noValidate className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 overflow-y-auto px-6 py-5">
-            <FieldGroup className="gap-5">
+        <form ref={formRef} action={formAction} noValidate className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <ScrollArea className="flex-1 min-h-0 max-h-[calc(90vh-140px)]" orientation="vertical">
+            <div className="px-6 py-5">
+              <FieldGroup className="gap-5">
               <Field className="gap-1.5">
                 <FieldLabel htmlFor="create-mentor-name" className="text-xs font-semibold text-foreground/90">
                   Full Name *
@@ -206,6 +208,7 @@ export default function MentorCreateDialog({
               </Field>
             </FieldGroup>
           </div>
+        </ScrollArea>
 
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border/60 bg-muted/15 shrink-0">
             <Button type="button" variant="outline" size="default" onClick={onClose} disabled={isPending} className="h-9 px-4 text-xs font-medium">

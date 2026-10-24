@@ -13,6 +13,7 @@ async function main() {
       password: defaultHashedPassword,
       role: 'ADMIN',
       needsPasswordChange: false,
+      isDeleted: false,
     },
     create: {
       name: 'Super Admin',
@@ -21,6 +22,7 @@ async function main() {
       role: 'ADMIN',
       status: 'ACTIVE',
       needsPasswordChange: false,
+      isDeleted: false,
     },
   });
   console.log('👤 Seeded Admin user:', admin.email);
@@ -31,7 +33,9 @@ async function main() {
     update: {
       password: defaultHashedPassword,
       role: 'MENTOR',
+      mentorId: 'MEN-100001',
       needsPasswordChange: false,
+      isDeleted: false,
     },
     create: {
       name: 'Tanvir Hossain (Mentor)',
@@ -39,8 +43,11 @@ async function main() {
       password: defaultHashedPassword,
       role: 'MENTOR',
       status: 'ACTIVE',
+      mentorId: 'MEN-100001',
+      contactNumber: '+8801811223344',
       expertise: 'Full-Stack Web Development',
       needsPasswordChange: false,
+      isDeleted: false,
     },
   });
   console.log('👨‍🏫 Seeded Demo Mentor user:', mentor.email);
@@ -51,8 +58,10 @@ async function main() {
     update: {
       password: defaultHashedPassword,
       role: 'STUDENT',
+      studentId: 'STD-100001',
       assignedBatchId: 'BATCH-01',
       needsPasswordChange: false,
+      isDeleted: false,
     },
     create: {
       name: 'Rahim Ahmed (Student)',
@@ -60,8 +69,12 @@ async function main() {
       password: defaultHashedPassword,
       role: 'STUDENT',
       status: 'ACTIVE',
+      studentId: 'STD-100001',
+      contactNumber: '+8801711223344',
+      enrolledTrack: 'Full Stack Web Development',
       assignedBatchId: 'BATCH-01',
       needsPasswordChange: false,
+      isDeleted: false,
     },
   });
   console.log('🎓 Seeded Demo Student user:', student.email);
@@ -72,7 +85,9 @@ async function main() {
     update: {
       password: defaultHashedPassword,
       role: 'MENTOR',
+      mentorId: 'MEN-100002',
       needsPasswordChange: true,
+      isDeleted: false,
     },
     create: {
       name: 'Rasel Mahmud (New Mentor)',
@@ -80,8 +95,11 @@ async function main() {
       password: defaultHashedPassword,
       role: 'MENTOR',
       status: 'ACTIVE',
+      mentorId: 'MEN-100002',
+      contactNumber: '+8801911223344',
       expertise: 'Frontend React Architecture',
       needsPasswordChange: true,
+      isDeleted: false,
     },
   });
   console.log('⏳ Seeded First-Time Unactivated Mentor (needsPasswordChange: true):', unactivatedMentor.email);

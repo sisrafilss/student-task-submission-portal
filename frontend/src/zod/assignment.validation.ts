@@ -31,6 +31,20 @@ export const createAssignmentValidationSchema = z.object({
   mentorQuotas: z.array(mentorQuotaSchema).optional().default([]),
 });
 
+export const updateAssignmentValidationSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  description: z.string().min(5, 'Description must be at least 5 characters'),
+  batchId: z.string().min(1, 'Please select a batch'),
+  deadline: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: 'Deadline must be a valid date format',
+  }),
+  totalMarks: z.coerce.number().int().positive('Total marks must be positive').default(100),
+  maxPerMentor: z.coerce.number().int().positive('Default quota must be positive').default(10),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('PUBLISHED'),
+  rubrics: z.array(rubricItemSchema).optional().default([]),
+  mentorQuotas: z.array(mentorQuotaSchema).optional().default([]),
+});
+
 export const studentSubmissionValidationSchema = z.object({
   assignmentId: z.string().min(1, 'Invalid assignment selected'),
   repoUrl: z

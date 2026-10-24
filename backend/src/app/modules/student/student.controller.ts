@@ -20,20 +20,6 @@ const pick = <T extends Record<string, unknown>, K extends keyof T>(
   return finalObj;
 };
 
-const createStudent = catchAsync(async (req: Request, res: Response) => {
-  const result = await StudentService.createStudentIntoDB(req.body);
-
-  // Omit password from HTTP API response
-  const { password: _, ...cleanStudent } = result as Record<string, unknown>;
-
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Student created successfully',
-    data: cleanStudent,
-  });
-});
-
 const getAllStudents = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query as Record<string, unknown>, studentFilterableFields);
   const paginationOptions = pick(req.query as Record<string, unknown>, paginationFields);
@@ -86,7 +72,6 @@ const deleteStudent = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const StudentController = {
-  createStudent,
   getAllStudents,
   getSingleStudent,
   updateStudent,

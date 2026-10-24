@@ -97,6 +97,30 @@ const getActiveMentors = catchAsync(async (_req: Request, res: Response) => {
   });
 });
 
+const updateAssignment = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const result = await AssignmentService.updateAssignment(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Assignment updated successfully',
+    data: result,
+  });
+});
+
+const deleteAssignment = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const result = await AssignmentService.deleteAssignment(id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Assignment and all associated records deleted successfully',
+    data: result,
+  });
+});
+
 export const AssignmentController = {
   createAssignment,
   getAllAssignments,
@@ -104,5 +128,7 @@ export const AssignmentController = {
   getMyBatchAssignments,
   updateAssignmentMentors,
   getActiveMentors,
+  updateAssignment,
+  deleteAssignment,
 };
 

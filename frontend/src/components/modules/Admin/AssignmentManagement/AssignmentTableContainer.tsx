@@ -1,6 +1,10 @@
 import TablePagination from '@/components/shared/TablePagination';
 import { queryStringFormatter } from '@/lib/formatters';
-import { getAdminAssignments } from '@/services/assignments/assignmentManagement';
+import {
+  getAdminAssignments,
+  getAvailableMentorsList,
+} from '@/services/assignments/assignmentManagement';
+import { getActiveBatches } from '@/services/batch/batchManagement';
 import React from 'react';
 import AssignmentTable from './AssignmentTable';
 
@@ -14,11 +18,19 @@ export default async function AssignmentTableContainer({
   const searchParamsObj = await searchParams;
   const queryString = queryStringFormatter(searchParamsObj);
 
-  const res = await getAdminAssignments(queryString);
+  const [res, mentorsData, batchesData] = await Promise.all([
+    getAdminAssignments(queryString),
+    getAvailableMentorsList(),
+    getActiveBatches(),
+  ]);
 
   return (
     <div className="space-y-4">
-      <AssignmentTable assignments={res.data} />
+      <AssignmentTable
+        assignments={res.data}
+        availableMentors={mentorsData.data}
+        availableBatches={batchesData.data}
+      />
       <TablePagination
         currentPage={res.meta.page}
         totalPages={res.meta.totalPages}
@@ -26,4 +38,3 @@ export default async function AssignmentTableContainer({
     </div>
   );
 }
-

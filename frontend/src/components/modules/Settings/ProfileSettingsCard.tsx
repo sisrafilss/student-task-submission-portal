@@ -1,5 +1,8 @@
 'use client';
 
+import { useActionState, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Loader2, Save, User } from 'lucide-react';
 import InputFieldError from '@/components/shared/InputFieldError';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,18 +18,19 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { updateProfileSettings } from '@/services/settings/updateProfileSettings';
 import { IUserProfileSettings } from '@/types/settings.interface';
-import { Loader2, Save, User } from 'lucide-react';
-import { useActionState, useEffect } from 'react';
-import { toast } from 'sonner';
+import ProfileAvatarUploader from './ProfileAvatarUploader';
 
 interface ProfileSettingsCardProps {
   initialProfile: IUserProfileSettings;
+  onAvatarUpdated?: (url: string) => void;
 }
 
 export default function ProfileSettingsCard({
   initialProfile,
+  onAvatarUpdated,
 }: ProfileSettingsCardProps) {
   const [state, formAction, isPending] = useActionState(updateProfileSettings, null);
+  const [currentAvatar, setCurrentAvatar] = useState(initialProfile.avatarUrl || '');
 
   useEffect(() => {
     if (state?.success && state.message) {
@@ -35,6 +39,11 @@ export default function ProfileSettingsCard({
       toast.error(state.message);
     }
   }, [state]);
+
+  const handleAvatarChange = (newUrl: string) => {
+    setCurrentAvatar(newUrl);
+    onAvatarUpdated?.(newUrl);
+  };
 
   return (
     <Card className="border-border shadow-xs">
@@ -46,18 +55,25 @@ export default function ProfileSettingsCard({
           <div>
             <CardTitle className="text-lg font-bold">Personal Profile & Contact</CardTitle>
             <CardDescription className="text-xs sm:text-sm">
-              Manage your display identity, phone, bio, and public portfolio links.
+              Manage your display identity, avatar, contact number, and public links.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
       <form action={formAction} noValidate>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-6">
+          {/* Cloudinary Profile Photo Uploader */}
+          <ProfileAvatarUploader
+            currentAvatarUrl={currentAvatar}
+            fallbackName={initialProfile.name}
+            onAvatarChange={handleAvatarChange}
+          />
+
           <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="name" className="text-xs font-semibold">
-                Full Legal Name
+                Full Legal Name *
               </FieldLabel>
               <Input
                 id="name"
@@ -71,7 +87,7 @@ export default function ProfileSettingsCard({
 
             <Field>
               <FieldLabel htmlFor="email" className="text-xs font-semibold">
-                Account Email (Read-Only)
+                Institutional Email (Read-Only)
               </FieldLabel>
               <Input
                 id="email"
@@ -81,7 +97,7 @@ export default function ProfileSettingsCard({
                 className="bg-muted cursor-not-allowed opacity-80"
               />
               <FieldDescription className="text-[11px]">
-                Institutional email managed by administrator.
+                Account identifier managed by portal administration.
               </FieldDescription>
             </Field>
 
@@ -100,17 +116,17 @@ export default function ProfileSettingsCard({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="avatarUrl" className="text-xs font-semibold">
-                Profile Avatar URL
+              <FieldLabel htmlFor="portfolioUrl" className="text-xs font-semibold">
+                Portfolio / Website URL
               </FieldLabel>
               <Input
-                id="avatarUrl"
-                name="avatarUrl"
-                defaultValue={initialProfile.avatarUrl || ''}
-                placeholder="https://example.com/avatar.jpg"
+                id="portfolioUrl"
+                name="portfolioUrl"
+                defaultValue={initialProfile.portfolioUrl || ''}
+                placeholder="https://myportfolio.dev"
                 disabled={isPending}
               />
-              <InputFieldError field="avatarUrl" state={state} />
+              <InputFieldError field="portfolioUrl" state={state} />
             </Field>
           </FieldGroup>
 
@@ -123,17 +139,17 @@ export default function ProfileSettingsCard({
               name="bio"
               rows={3}
               defaultValue={initialProfile.bio || ''}
-              placeholder="Brief summary of your learning journey or professional background..."
+              placeholder="Brief summary of your learning journey or technical background..."
               disabled={isPending}
             />
             <InputFieldError field="bio" state={state} />
           </Field>
 
-          <div className="pt-2 mb-6">
+          <div className="pt-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-              Social & Portfolio Links
+              Social Links
             </h4>
-            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="githubUsername" className="text-xs font-semibold">
                   GitHub Username
@@ -142,7 +158,7 @@ export default function ProfileSettingsCard({
                   id="githubUsername"
                   name="githubUsername"
                   defaultValue={initialProfile.githubUsername || ''}
-                  placeholder="octocat"
+                  placeholder="e.g. octocat"
                   disabled={isPending}
                 />
                 <InputFieldError field="githubUsername" state={state} />
@@ -160,20 +176,6 @@ export default function ProfileSettingsCard({
                   disabled={isPending}
                 />
                 <InputFieldError field="linkedinUrl" state={state} />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="portfolioUrl" className="text-xs font-semibold">
-                  Portfolio / Website
-                </FieldLabel>
-                <Input
-                  id="portfolioUrl"
-                  name="portfolioUrl"
-                  defaultValue={initialProfile.portfolioUrl || ''}
-                  placeholder="https://myportfolio.dev"
-                  disabled={isPending}
-                />
-                <InputFieldError field="portfolioUrl" state={state} />
               </Field>
             </FieldGroup>
           </div>
@@ -198,4 +200,3 @@ export default function ProfileSettingsCard({
     </Card>
   );
 }
-

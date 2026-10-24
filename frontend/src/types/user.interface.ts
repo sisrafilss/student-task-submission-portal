@@ -6,5 +6,6 @@ export interface UserInfo {
   email: string;
   role: UserRole;
   avatarUrl?: string;
+  contactNumber?: string;
 }
 

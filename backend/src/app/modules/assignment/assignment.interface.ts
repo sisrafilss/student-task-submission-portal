@@ -19,6 +19,18 @@ export interface ICreateAssignmentPayload {
   mentorQuotas?: IMentorQuotaInput[];
 }
 
+export interface IUpdateAssignmentPayload {
+  title?: string;
+  description?: string;
+  batchId?: string;
+  deadline?: string | Date;
+  totalMarks?: number;
+  maxPerMentor?: number;
+  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  rubrics?: IRubricItem[];
+  mentorQuotas?: IMentorQuotaInput[];
+}
+
 export interface IUpdateAssignmentMentorsPayload {
   mentors: {
     mentorId: string;

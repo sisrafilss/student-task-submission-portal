@@ -6,6 +6,7 @@ import { SubmissionRoutes } from '../modules/submission/submission.routes';
 import { BatchRoutes } from '../modules/batch/batch.routes';
 import { StudentRoutes } from '../modules/student/student.routes';
 import { MentorRoutes } from '../modules/mentor/mentor.routes';
+import { UserRoutes } from '../modules/user/user.routes';
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: '/mentors',
     route: MentorRoutes,
+  },
+  {
+    path: '/users',
+    route: UserRoutes,
   },
 ];
 

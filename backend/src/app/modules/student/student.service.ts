@@ -1,86 +1,14 @@
 import { Prisma, UserStatus } from '@prisma/client';
 import httpStatus from 'http-status';
-import { hashPassword } from '../../../helpers/passwordHelpers';
 import { calculatePagination, IPaginationOptions } from '../../../helpers/paginationHelper';
 import prisma from '../../../shared/prisma';
 import ApiError from '../../errors/ApiError';
 import { studentSearchableFields } from './student.constant';
 import { formatStudentsWithBatches, IRawStudent } from './student.helper';
 import {
-  ICreateStudentPayload,
   IStudentFilterRequest,
   IUpdateStudentPayload,
 } from './student.interface';
-
-const createStudentIntoDB = async (payload: ICreateStudentPayload) => {
-  const existingUser = await prisma.user.findUnique({
-    where: { email: payload.email.toLowerCase().trim() },
-  });
-
-  if (existingUser) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      'A user account with this email address already exists.'
-    );
-  }
-
-  const studentId =
-    payload.studentId?.trim() ||
-    `STD-${Date.now().toString().slice(-6)}`;
-
-  const existingStudentId = await prisma.user.findFirst({
-    where: { studentId },
-  });
-
-  if (existingStudentId) {
-    throw new ApiError(
-      httpStatus.CONFLICT,
-      `Student ID '${studentId}' is already assigned to another student.`
-    );
-  }
-
-  const hashedPassword = await hashPassword(payload.password);
-
-  const student = await prisma.user.create({
-    data: {
-      name: payload.name.trim(),
-      email: payload.email.toLowerCase().trim(),
-      password: hashedPassword,
-      role: 'STUDENT',
-      studentId,
-      assignedBatchId: payload.batchId,
-      enrolledTrack: payload.enrolledTrack,
-      contactNumber: payload.contactNumber,
-      gender: payload.gender,
-      address: payload.address,
-      status: payload.status || 'ACTIVE',
-      githubUsername: payload.githubUsername,
-      linkedinUrl: payload.linkedinUrl,
-      isDeleted: false,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      studentId: true,
-      assignedBatchId: true,
-      enrolledTrack: true,
-      contactNumber: true,
-      gender: true,
-      address: true,
-      status: true,
-      githubUsername: true,
-      linkedinUrl: true,
-      isDeleted: true,
-      password: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  return student;
-};
 
 const getAllStudentsFromDB = async (
   filters: IStudentFilterRequest,
@@ -280,7 +208,6 @@ const deleteStudentFromDB = async (id: string) => {
 };
 
 export const StudentService = {
-  createStudentIntoDB,
   getAllStudentsFromDB,
   getSingleStudentFromDB,
   updateStudentIntoDB,

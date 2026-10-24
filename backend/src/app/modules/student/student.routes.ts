@@ -6,13 +6,6 @@ import { StudentValidation } from './student.validation';
 
 const router = Router();
 
-router.post(
-  '/',
-  auth('ADMIN'),
-  validateRequest(StudentValidation.createStudentZodSchema),
-  StudentController.createStudent
-);
-
 router.get(
   '/',
   auth('ADMIN', 'INSTRUCTOR', 'MENTOR'),

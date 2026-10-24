@@ -4,6 +4,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import { AssignmentController } from './assignment.controller';
 import {
   createAssignmentZodSchema,
+  updateAssignmentZodSchema,
   updateAssignmentMentorsZodSchema,
   assignmentQueryZodSchema,
 } from './assignment.validation';
@@ -40,6 +41,19 @@ router.get(
   auth('ADMIN', 'INSTRUCTOR'),
   validateRequest(assignmentQueryZodSchema),
   AssignmentController.getAllAssignments
+);
+
+router.patch(
+  '/:id',
+  auth('ADMIN'),
+  validateRequest(updateAssignmentZodSchema),
+  AssignmentController.updateAssignment
+);
+
+router.delete(
+  '/:id',
+  auth('ADMIN'),
+  AssignmentController.deleteAssignment
 );
 
 router.patch(

@@ -54,6 +54,25 @@ export const createAssignmentZodSchema = z.object({
   }),
 });
 
+export const updateAssignmentZodSchema = z.object({
+  body: z.object({
+    title: z.string().min(3, 'Title must be at least 3 characters').optional(),
+    description: z.string().min(5, 'Description must be at least 5 characters').optional(),
+    batchId: z.string().min(1, 'batchId cannot be empty').optional(),
+    deadline: z
+      .string()
+      .refine((val) => !isNaN(Date.parse(val)), {
+        message: 'Invalid deadline date format',
+      })
+      .optional(),
+    totalMarks: z.number().int().positive().optional(),
+    maxPerMentor: z.number().int().positive().optional(),
+    status: z.enum(assignmentStatusEnum).optional(),
+    rubrics: z.array(rubricItemSchema).optional(),
+    mentorQuotas: z.array(mentorQuotaSchema).optional(),
+  }),
+});
+
 export const updateAssignmentMentorsZodSchema = z.object({
   body: z.object({
     mentors: z

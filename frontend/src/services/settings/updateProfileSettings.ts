@@ -1,18 +1,15 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+import { serverFetch } from '@/lib/server-fetch';
 import { zodValidator } from '@/lib/zodValidator';
-import { getUserInfo } from '@/services/auth/getUserInfo';
 import { IActionResult } from '@/types/action.interface';
 import { profileSettingsValidationSchema } from '@/zod/settings.validation';
-import { getStoredSettings, updateStoredSettings } from './mockSettings';
 
 export const updateProfileSettings = async (
   _prevState: IActionResult | null,
   formData: FormData
 ): Promise<IActionResult> => {
-  const user = await getUserInfo();
-  const role = user?.role || 'STUDENT';
-
   const payload = {
     name: formData.get('name')?.toString().trim() || '',
     contactNumber: formData.get('contactNumber')?.toString().trim() || '',
@@ -32,18 +29,34 @@ export const updateProfileSettings = async (
     };
   }
 
-  const current = getStoredSettings(role);
-  const updated = updateStoredSettings(role, {
-    profile: {
-      ...current.profile,
-      ...validation.data,
-    },
-  });
+  try {
+    const response = await serverFetch.patch('/users/profile', {
+      body: JSON.stringify(validation.data),
+    });
 
-  return {
-    success: true,
-    message: 'Profile information updated successfully!',
-    data: updated.profile,
-  };
+    const resJson = await response.json();
+
+    if (!response.ok || !resJson.success) {
+      return {
+        success: false,
+        message: resJson.message || 'Failed to update profile information.',
+      };
+    }
+
+    revalidatePath('/settings');
+
+    return {
+      success: true,
+      message: 'Profile information updated successfully!',
+      data: resJson.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred while saving profile changes.',
+    };
+  }
 };
-

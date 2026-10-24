@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import PortalLogo from '@/components/shared/PortalLogo';
 import { getIconComponent } from '@/lib/icon-mapper';
+import { getAvatarInitials } from '@/lib/avatarHelper';
 import { cn } from '@/lib/utils';
 import { NavSection } from '@/types/dashboard.interface';
 import { UserInfo } from '@/types/user.interface';
@@ -85,9 +87,18 @@ export default function DashboardSidebarContent({
       {/* Authenticated User Snapshot at Footer */}
       <div className="shrink-0 border-t border-border p-3.5 bg-muted/20">
         <div className="flex items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm ring-1 ring-primary/20">
-            {userInfo.name.charAt(0).toUpperCase()}
-          </div>
+          <Avatar className="size-9 shrink-0 border border-primary/20">
+            {userInfo.avatarUrl ? (
+              <AvatarImage
+                src={userInfo.avatarUrl}
+                alt={userInfo.name}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+              {getAvatarInitials(userInfo.name)}
+            </AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold leading-tight text-foreground">
               {userInfo.name}

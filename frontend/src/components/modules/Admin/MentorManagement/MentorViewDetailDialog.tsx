@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { formatDateTime, getInitials } from '@/lib/formatters';
 import { IMentor } from '@/types/mentor.interface';
@@ -47,7 +48,8 @@ export default function MentorViewDetailDialog({
           <DialogTitle className="text-xl font-bold">Mentor Profile Details</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
+        <ScrollArea className="flex-1 min-h-0 max-h-[calc(90vh-120px)]" orientation="vertical">
+          <div className="px-6 pb-6 space-y-6">
           {/* Mentor Profile Banner */}
           <div className="flex flex-col items-center gap-4 rounded-xl bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-5 sm:flex-row sm:items-start border border-border/60">
             <Avatar className="size-20 border-2 border-background shadow-md">
@@ -242,7 +244,8 @@ export default function MentorViewDetailDialog({
               </p>
             </div>
           )}
-        </div>
+          </div>
+        </ScrollArea>
 
         <div className="flex items-center justify-end px-6 py-3 border-t border-border/60 bg-muted/20">
           <Button variant="outline" size="sm" onClick={onClose}>

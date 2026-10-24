@@ -1,6 +1,7 @@
 import { UserRole } from '@/lib/auth-utils';
 
 export interface IUserProfileSettings {
+  id?: string;
   name: string;
   email: string;
   contactNumber: string;
@@ -9,6 +10,17 @@ export interface IUserProfileSettings {
   githubUsername?: string;
   linkedinUrl?: string;
   portfolioUrl?: string;
+  studentId?: string;
+  mentorId?: string;
+  enrolledTrack?: string;
+  expertise?: string;
+  assignedBatchId?: string;
+  assignedBatch?: {
+    id: string;
+    batchNumber: string;
+    batchName: string;
+  } | null;
+  status?: string;
 }
 
 export interface IUserSettings {

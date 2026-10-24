@@ -20,5 +20,11 @@ export default {
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
   bcrypt_salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 12,
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+    folder: process.env.CLOUDINARY_FOLDER || 'student_portal/avatars',
+  },
 };
 
