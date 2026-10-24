@@ -45,7 +45,7 @@ export default function AssignmentDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-2xl sm:max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="w-[95vw] sm:max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
         {/* Modal Header */}
         <DialogHeader className="p-6 pb-4 border-b border-border/50 bg-muted/10">
           <div className="flex flex-wrap items-center gap-2 mb-2">

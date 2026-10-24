@@ -1,0 +1,229 @@
+'use client';
+
+import InputFieldError from '@/components/shared/InputFieldError';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  MentorOption,
+  useAssignmentCreateForm,
+} from '@/hooks/useAssignmentCreateForm';
+import { Loader2, Sparkles } from 'lucide-react';
+import React from 'react';
+import AssignmentBatchSelect from './AssignmentBatchSelect';
+import AssignmentDeadlinePicker from './AssignmentDeadlinePicker';
+import AssignmentMentorQuotaPicker from './AssignmentMentorQuotaPicker';
+import AssignmentRubricsBuilder from './AssignmentRubricsBuilder';
+
+interface AssignmentCreateDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  availableMentors: MentorOption[];
+}
+
+export default function AssignmentCreateDialog({
+  open,
+  onClose,
+  onSuccess,
+  availableMentors,
+}: AssignmentCreateDialogProps) {
+  const {
+    formRef,
+    state,
+    formAction,
+    isPending,
+    formValues,
+    setters,
+    resetForm,
+  } = useAssignmentCreateForm({
+    open,
+    onClose,
+    onSuccess,
+    availableMentors,
+  });
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(val) => !val && handleClose()}>
+      <DialogContent className="w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-0 overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[90vh] gap-0">
+        <DialogHeader className="px-6 sm:px-8 pt-6 pb-4 border-b border-border/60 shrink-0">
+          <div className="flex items-center gap-2 text-primary">
+            <Sparkles className="size-5" />
+            <DialogTitle className="text-lg font-bold">Create New Assignment</DialogTitle>
+          </div>
+          <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+            Configure assignment details, marking rubrics, and mentor allocation quotas.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          ref={formRef}
+          action={formAction}
+          noValidate
+          id="create-assignment-form"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
+        >
+          <ScrollArea
+            className="flex-1 min-h-0 max-h-[calc(88vh-145px)] sm:max-h-[calc(90vh-145px)] px-6 sm:px-8 py-5"
+            orientation="vertical"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              {/* Left Column: Basic Details */}
+              <FieldGroup className="space-y-4">
+                {/* Title */}
+                <Field>
+                  <FieldLabel htmlFor="title" className="text-xs font-semibold">
+                    Assignment Title *
+                  </FieldLabel>
+                  <Input
+                    id="title"
+                    name="title"
+                    value={formValues.title}
+                    onChange={(e) => setters.setTitle(e.target.value)}
+                    placeholder="e.g. Milestone 04: Full Stack Architecture"
+                    className="h-9 text-xs"
+                  />
+                  <InputFieldError field="title" state={state} />
+                </Field>
+
+                {/* Description */}
+                <Field>
+                  <FieldLabel htmlFor="description" className="text-xs font-semibold">
+                    Assignment Description *
+                  </FieldLabel>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    rows={4}
+                    value={formValues.description}
+                    onChange={(e) => setters.setDescription(e.target.value)}
+                    placeholder="Provide comprehensive requirements and instructions..."
+                    className="text-xs resize-none"
+                  />
+                  <InputFieldError field="description" state={state} />
+                </Field>
+
+                {/* Batch & Deadline Grid */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="batchId" className="text-xs font-semibold">
+                      Target Batch *
+                    </FieldLabel>
+                    <AssignmentBatchSelect
+                      value={formValues.batchId}
+                      onChange={setters.setBatchId}
+                    />
+                    <InputFieldError field="batchId" state={state} />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel
+                      htmlFor="deadline"
+                      className="text-xs font-semibold"
+                    >
+                      Submission Deadline *
+                    </FieldLabel>
+                    <AssignmentDeadlinePicker
+                      value={formValues.deadline}
+                      onChange={setters.setDeadline}
+                    />
+                    <InputFieldError field="deadline" state={state} />
+                  </Field>
+                </div>
+
+                {/* Marks & Default Quota Grid */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="totalMarks" className="text-xs font-semibold">
+                      Total Marks
+                    </FieldLabel>
+                    <Input
+                      id="totalMarks"
+                      name="totalMarks"
+                      type="number"
+                      min={1}
+                      value={formValues.totalMarks}
+                      onChange={(e) => setters.setTotalMarks(Number(e.target.value) || 0)}
+                      className="h-9 text-xs"
+                    />
+                    <InputFieldError field="totalMarks" state={state} />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="maxPerMentor" className="text-xs font-semibold">
+                      Default Quota Per Mentor
+                    </FieldLabel>
+                    <Input
+                      id="maxPerMentor"
+                      name="maxPerMentor"
+                      type="number"
+                      min={1}
+                      value={formValues.defaultQuota}
+                      onChange={(e) =>
+                        setters.setDefaultQuota(Number(e.target.value) || 15)
+                      }
+                      className="h-9 text-xs"
+                    />
+                    <FieldDescription className="text-[11px]">
+                      Fallback quota for unassigned mentors.
+                    </FieldDescription>
+                  </Field>
+                </div>
+              </FieldGroup>
+
+              {/* Right Column: Rubrics & Mentors */}
+              <div className="space-y-5">
+                <AssignmentRubricsBuilder
+                  rubrics={formValues.rubrics}
+                  onChange={setters.setRubrics}
+                />
+                <AssignmentMentorQuotaPicker
+                  availableMentors={availableMentors}
+                  mentorQuotas={formValues.mentorQuotas}
+                  defaultQuota={formValues.defaultQuota}
+                  onChange={setters.setMentorQuotas}
+                />
+              </div>
+            </div>
+          </ScrollArea>
+
+          {/* Fixed Actions Footer */}
+          <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-3.5 border-t border-border/60 shrink-0 bg-background z-10">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isPending}
+              className="gap-2 font-medium"
+            >
+              {isPending && <Loader2 className="size-3.5 animate-spin" />}
+              {isPending ? 'Creating Assignment...' : 'Create Assignment'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

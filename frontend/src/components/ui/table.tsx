@@ -9,6 +9,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     <ScrollArea
       data-slot="table-container"
       className="relative w-full"
+      orientation="horizontal"
     >
       <table
         data-slot="table"

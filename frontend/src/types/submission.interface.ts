@@ -89,6 +89,7 @@ export interface ISubmissionPaginationMeta {
 }
 
 export interface ISubmissionListResponse {
+  success?: boolean;
   meta: ISubmissionPaginationMeta;
   data: ISubmission[];
 }

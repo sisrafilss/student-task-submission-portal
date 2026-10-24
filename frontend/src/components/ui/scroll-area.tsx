@@ -4,11 +4,16 @@ import * as React from "react"
 import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
 import { cn } from "cn"
 
+interface ScrollAreaProps extends ScrollAreaPrimitive.Root.Props {
+  orientation?: "vertical" | "horizontal" | "both"
+}
+
 function ScrollArea({
   className,
   children,
+  orientation = "both",
   ...props
-}: ScrollAreaPrimitive.Root.Props) {
+}: ScrollAreaProps) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -17,12 +22,16 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className="size-full max-h-[inherit] rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar orientation="vertical" />
-      <ScrollBar orientation="horizontal" />
+      {(orientation === "vertical" || orientation === "both") && (
+        <ScrollBar orientation="vertical" />
+      )}
+      {(orientation === "horizontal" || orientation === "both") && (
+        <ScrollBar orientation="horizontal" />
+      )}
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   )
@@ -31,7 +40,7 @@ function ScrollArea({
 function ScrollBar({
   className,
   orientation = "vertical",
-  keepMounted = true,
+  keepMounted = false,
   ...props
 }: ScrollAreaPrimitive.Scrollbar.Props) {
   return (
@@ -41,7 +50,11 @@ function ScrollBar({
       orientation={orientation}
       keepMounted={keepMounted}
       className={cn(
-        "flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
+        "flex touch-none p-px transition-colors select-none",
+        "data-[orientation=horizontal]:h-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:border-t data-[orientation=horizontal]:border-t-transparent",
+        "data-[orientation=vertical]:h-full data-[orientation=vertical]:w-2.5 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-transparent",
+        "data-[orientation=horizontal]:data-hidden:hidden data-[orientation=vertical]:data-hidden:hidden",
+        "data-[orientation=horizontal]:not-data-[has-overflow-x]:hidden data-[orientation=vertical]:not-data-[has-overflow-y]:hidden",
         className
       )}
       {...props}

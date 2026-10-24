@@ -24,6 +24,12 @@ router.get(
 );
 
 router.get(
+  '/active-mentors',
+  auth('ADMIN'),
+  AssignmentController.getActiveMentors
+);
+
+router.get(
   '/:id',
   auth('ADMIN', 'INSTRUCTOR', 'MENTOR', 'STUDENT'),
   AssignmentController.getSingleAssignment

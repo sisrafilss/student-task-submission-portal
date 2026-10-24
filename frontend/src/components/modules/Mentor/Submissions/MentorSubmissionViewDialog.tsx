@@ -48,7 +48,7 @@ export default function MentorSubmissionViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] w-full sm:max-w-2xl flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border/70">
+      <DialogContent className="max-h-[90vh] w-[95vw] sm:max-w-2xl lg:max-w-3xl flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border/70">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50 shrink-0">
           <div className="flex items-center justify-between pr-4">
             <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
@@ -59,7 +59,7 @@ export default function MentorSubmissionViewDialog({
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
-          <ScrollArea className="h-[420px] sm:h-[460px] pr-3">
+          <ScrollArea className="h-[420px] sm:h-[460px] pr-3" orientation="vertical">
             <div className="space-y-4">
               {/* Assignment & Project Header */}
               <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-1.5">

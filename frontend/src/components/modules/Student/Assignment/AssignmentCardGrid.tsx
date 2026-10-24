@@ -3,26 +3,40 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { IAssignment } from '@/types/submission.interface';
 import { FolderOpen } from 'lucide-react';
-import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useState, useTransition } from 'react';
 import AssignmentCard from './AssignmentCard';
 import AssignmentDetailDialog from './AssignmentDetailDialog';
+import StudentSubmissionDialog from './StudentSubmissionDialog';
 
 interface AssignmentCardGridProps {
   assignments: IAssignment[];
 }
 
 export default function AssignmentCardGrid({ assignments }: AssignmentCardGridProps) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
   const [selectedAssignment, setSelectedAssignment] = useState<IAssignment | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const [submittingAssignment, setSubmittingAssignment] = useState<IAssignment | null>(null);
+  const [submissionOpen, setSubmissionOpen] = useState(false);
 
   const handleViewDetails = (assignment: IAssignment) => {
     setSelectedAssignment(assignment);
-    setDialogOpen(true);
+    setDetailOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedAssignment(null);
+  const handleSubmitAssignment = (assignment: IAssignment) => {
+    setSubmittingAssignment(assignment);
+    setSubmissionOpen(true);
+  };
+
+  const handleSubmissionSuccess = () => {
+    startTransition(() => {
+      router.refresh();
+    });
   };
 
   if (!assignments || assignments.length === 0) {
@@ -53,6 +67,7 @@ export default function AssignmentCardGrid({ assignments }: AssignmentCardGridPr
             key={assignment.id}
             assignment={assignment}
             onViewDetails={handleViewDetails}
+            onSubmit={handleSubmitAssignment}
           />
         ))}
       </div>
@@ -60,8 +75,22 @@ export default function AssignmentCardGrid({ assignments }: AssignmentCardGridPr
       {/* Assignment Detail & Rubrics Modal */}
       <AssignmentDetailDialog
         assignment={selectedAssignment}
-        open={dialogOpen}
-        onClose={handleCloseDialog}
+        open={detailOpen}
+        onClose={() => {
+          setDetailOpen(false);
+          setSelectedAssignment(null);
+        }}
+      />
+
+      {/* Direct Student Submission Modal */}
+      <StudentSubmissionDialog
+        open={submissionOpen}
+        assignment={submittingAssignment}
+        onClose={() => {
+          setSubmissionOpen(false);
+          setSubmittingAssignment(null);
+        }}
+        onSuccess={handleSubmissionSuccess}
       />
     </>
   );

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { changePassword } from '@/services/auth/changePassword';
-import { CheckCircle2, Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, ShieldCheck } from 'lucide-react';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 

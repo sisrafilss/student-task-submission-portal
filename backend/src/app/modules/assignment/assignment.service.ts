@@ -252,11 +252,20 @@ const updateAssignmentMentors = async (
   return await prisma.$transaction(operations);
 };
 
+const getActiveMentors = async () => {
+  return await prisma.user.findMany({
+    where: { role: 'MENTOR', status: 'ACTIVE' },
+    select: { id: true, name: true, email: true, expertise: true },
+    orderBy: { name: 'asc' },
+  });
+};
+
 export const AssignmentService = {
   createAssignment,
   getAllAssignments,
   getSingleAssignment,
   getMyBatchAssignments,
   updateAssignmentMentors,
+  getActiveMentors,
 };
 

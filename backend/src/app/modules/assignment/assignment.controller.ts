@@ -86,11 +86,23 @@ const updateAssignmentMentors = catchAsync(async (req: Request, res: Response) =
   });
 });
 
+const getActiveMentors = catchAsync(async (_req: Request, res: Response) => {
+  const result = await AssignmentService.getActiveMentors();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Active mentors retrieved successfully',
+    data: result,
+  });
+});
+
 export const AssignmentController = {
   createAssignment,
   getAllAssignments,
   getSingleAssignment,
   getMyBatchAssignments,
   updateAssignmentMentors,
+  getActiveMentors,
 };
 

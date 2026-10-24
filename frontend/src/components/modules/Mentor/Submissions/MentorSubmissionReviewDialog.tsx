@@ -49,22 +49,23 @@ export default function MentorSubmissionReviewDialog({
 }: MentorSubmissionReviewDialogProps) {
   const [state, formAction, isPending] = useActionState(reviewSubmission, null);
 
-  const [actionType, setActionType] = useState<'APPROVE' | 'REJECT'>('APPROVE');
-  const [score, setScore] = useState<number>(85);
-  const [rubricScores, setRubricScores] = useState<IRubricScoreItem[]>([]);
-  const [rejectionReason, setRejectionReason] = useState<string>('');
-  const [feedback, setFeedback] = useState<string>('');
+  const [actionType, setActionType] = useState<'APPROVE' | 'REJECT'>(
+    submission?.status === 'REJECTED' ? 'REJECT' : 'APPROVE'
+  );
+  const [score, setScore] = useState<number>(submission?.score ?? 85);
+  const [rubricScores, setRubricScores] = useState<IRubricScoreItem[]>(submission?.rubricScores || []);
+  const [rejectionReason, setRejectionReason] = useState<string>(submission?.rejectionReason || '');
+  const [feedback, setFeedback] = useState<string>(submission?.feedback || '');
+  const [prevSubmissionId, setPrevSubmissionId] = useState<string | null>(submission?.id || null);
 
-  useEffect(() => {
-    if (submission) {
-      const isRej = submission.status === 'REJECTED';
-      setActionType(isRej ? 'REJECT' : 'APPROVE');
-      setScore(submission.score ?? 85);
-      setRubricScores(submission.rubricScores || []);
-      setRejectionReason(submission.rejectionReason || '');
-      setFeedback(submission.feedback || '');
-    }
-  }, [submission]);
+  if (submission && submission.id !== prevSubmissionId) {
+    setPrevSubmissionId(submission.id);
+    setActionType(submission.status === 'REJECTED' ? 'REJECT' : 'APPROVE');
+    setScore(submission.score ?? 85);
+    setRubricScores(submission.rubricScores || []);
+    setRejectionReason(submission.rejectionReason || '');
+    setFeedback(submission.feedback || '');
+  }
 
   useEffect(() => {
     if (state && !state.success && state.message) {
@@ -85,7 +86,7 @@ export default function MentorSubmissionReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-h-[92vh] w-full sm:max-w-2xl flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border/70">
+      <DialogContent className="max-h-[92vh] w-[95vw] sm:max-w-2xl lg:max-w-3xl flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border/70">
         <DialogHeader className="px-6 pt-5 pb-3 border-b border-border/50 shrink-0">
           <div className="space-y-1">
             <DialogTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -107,7 +108,7 @@ export default function MentorSubmissionReviewDialog({
           <input type="hidden" name="rubricScoresJson" value={JSON.stringify(rubricScores)} />
 
           <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
-            <ScrollArea className="h-[430px] sm:h-[470px] pr-3">
+            <ScrollArea className="h-[430px] sm:h-[470px] pr-3" orientation="vertical">
               <FieldGroup className="space-y-4">
                 {/* Decision Toggle */}
                 <Field>

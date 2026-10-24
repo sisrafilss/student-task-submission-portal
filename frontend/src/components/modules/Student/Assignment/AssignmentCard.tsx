@@ -27,11 +27,13 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 interface AssignmentCardProps {
   assignment: IAssignment;
   onViewDetails: (assignment: IAssignment) => void;
+  onSubmit?: (assignment: IAssignment) => void;
 }
 
 export default function AssignmentCard({
   assignment,
   onViewDetails,
+  onSubmit,
 }: AssignmentCardProps) {
   const isSubmitted =
     assignment.studentSubmissionStatus &&
@@ -49,7 +51,7 @@ export default function AssignmentCard({
             className="border-primary/30 text-primary bg-primary/5 text-[11px] font-medium"
           >
             <Layers className="size-3 mr-1" />
-            {assignment.courseTrack}
+            {assignment.courseTrack || assignment.batchName}
           </Badge>
           <AssignmentStatusBadge
             deadline={assignment.deadline}
@@ -84,7 +86,7 @@ export default function AssignmentCard({
           </div>
 
           <div className="space-y-0.5">
-            <span className="text-[11px] text-muted-foreground">Max Score</span>
+            <span className="text-[11px] text-muted-foreground">Total Marks</span>
             <p className="font-medium text-foreground flex items-center gap-1">
               <Award className="size-3 text-amber-600 dark:text-amber-400" />
               {assignment.maxScore} Marks
@@ -133,6 +135,16 @@ export default function AssignmentCard({
             <ExternalLink className="size-3.5" />
             My Submission
           </Link>
+        ) : onSubmit ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onSubmit(assignment)}
+            className="text-xs h-9 gap-1.5 flex-1 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+          >
+            <Send className="size-3.5" />
+            Submit
+          </Button>
         ) : (
           <Link
             href={`/student/submissions?assignmentId=${assignment.id}`}
@@ -150,4 +162,3 @@ export default function AssignmentCard({
     </Card>
   );
 }
-
