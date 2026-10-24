@@ -103,9 +103,19 @@ export default function DashboardSidebarContent({
             <p className="truncate text-sm font-semibold leading-tight text-foreground">
               {userInfo.name}
             </p>
-            <p className="truncate text-xs text-muted-foreground capitalize">
-              {userInfo.role.toLowerCase()}
-            </p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="truncate text-xs text-muted-foreground capitalize">
+                {userInfo.role.toLowerCase()}
+              </span>
+              {userInfo.role === 'STUDENT' && userInfo.assignedBatchId && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-1.5 py-0 h-4 font-semibold text-primary border-primary/30 bg-primary/5 shrink-0"
+                >
+                  {userInfo.assignedBatchId}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>

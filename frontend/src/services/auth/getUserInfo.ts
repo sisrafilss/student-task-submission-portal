@@ -60,6 +60,7 @@ export const getUserInfo = cache(async (): Promise<UserInfo | null> => {
             role: u.role,
             avatarUrl: u.avatarUrl || undefined,
             contactNumber: u.contactNumber || undefined,
+            assignedBatchId: u.assignedBatchId || undefined,
           };
         }
       }
@@ -87,13 +88,14 @@ export const getUserInfo = cache(async (): Promise<UserInfo | null> => {
 
       if (jsonPayload) {
         const decoded = JSON.parse(jsonPayload);
-        return {
-          id: decoded.id || decoded.userId || decoded.sub || 'user',
-          name: decoded.name || decoded.fullName || decoded.email?.split('@')[0] || 'User',
-          email: decoded.email || 'user@portal.test',
-          role: decoded.role || 'STUDENT',
-          avatarUrl: decoded.avatarUrl || decoded.image || undefined,
-        };
+          return {
+            id: decoded.id || decoded.userId || decoded.sub || 'user',
+            name: decoded.name || decoded.fullName || decoded.email?.split('@')[0] || 'User',
+            email: decoded.email || 'user@portal.test',
+            role: decoded.role || 'STUDENT',
+            avatarUrl: decoded.avatarUrl || decoded.image || undefined,
+            assignedBatchId: decoded.assignedBatchId || undefined,
+          };
       }
     }
 

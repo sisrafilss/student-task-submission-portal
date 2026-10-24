@@ -55,6 +55,8 @@ export interface IStudentBatchAssignment {
   title: string;
   description: string;
   batchId: string;
+  batchName?: string;
+  courseTrack?: string;
   deadline: string;
   totalMarks: number;
   rubrics: IRubricItem[];

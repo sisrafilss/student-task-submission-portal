@@ -8,14 +8,16 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  Layers,
   Sparkles,
 } from 'lucide-react';
 
 interface AssignmentPortalHeaderProps {
   stats: IAssignmentStats;
+  batchId?: string;
 }
 
-export default function AssignmentPortalHeader({ stats }: AssignmentPortalHeaderProps) {
+export default function AssignmentPortalHeader({ stats, batchId }: AssignmentPortalHeaderProps) {
   return (
     <div className="space-y-4">
       {/* Title & Badge */}
@@ -25,10 +27,17 @@ export default function AssignmentPortalHeader({ stats }: AssignmentPortalHeader
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Course Assignments Hub
             </h1>
-            <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 text-xs">
-              <Sparkles className="size-3 mr-1" />
-              Academic Portal
-            </Badge>
+            {batchId ? (
+              <Badge variant="secondary" className="border border-primary/25 bg-primary/10 text-primary text-xs font-semibold">
+                <Layers className="size-3 mr-1" />
+                Enrolled: {batchId}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 text-xs">
+                <Sparkles className="size-3 mr-1" />
+                Academic Portal
+              </Badge>
+            )}
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Explore your active projects, inspect guidelines & rubrics, and submit on time.

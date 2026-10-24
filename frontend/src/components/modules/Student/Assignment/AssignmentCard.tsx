@@ -48,10 +48,10 @@ export default function AssignmentCard({
         <div className="flex items-center justify-between gap-2">
           <Badge
             variant="outline"
-            className="border-primary/30 text-primary bg-primary/5 text-[11px] font-medium"
+            className="border-primary/30 text-primary bg-primary/5 text-[11px] font-semibold"
           >
             <Layers className="size-3 mr-1" />
-            {assignment.courseTrack || assignment.batchName}
+            {assignment.batchId || assignment.batchName}
           </Badge>
           <AssignmentStatusBadge
             deadline={assignment.deadline}

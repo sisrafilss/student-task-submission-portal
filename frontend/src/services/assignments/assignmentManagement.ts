@@ -246,13 +246,17 @@ export const getAdminAssignments = async (
   }
 };
 
-export const getStudentBatchAssignments = async (): Promise<{
+export const getStudentBatchAssignments = async (
+  queryString = ''
+): Promise<{
   success: boolean;
   message?: string;
   data: IStudentBatchAssignment[];
 }> => {
   try {
-    const res = await serverFetch.get('/assignments/my-batch', {
+    const cleanQuery = queryString ? queryString.replace(/^\?/, '') : '';
+    const endpoint = cleanQuery ? `/assignments/my-batch?${cleanQuery}` : '/assignments/my-batch';
+    const res = await serverFetch.get(endpoint, {
       cache: 'no-store',
     });
     const result = await res.json();
@@ -263,6 +267,25 @@ export const getStudentBatchAssignments = async (): Promise<{
   } catch {
     return { success: false, data: [] };
   }
+};
+
+export const calculateStudentAssignmentStats = async (
+  assignments: IStudentBatchAssignment[] = []
+): Promise<IAssignmentStats> => {
+  return {
+    totalCount: assignments.length,
+    actionRequiredCount: assignments.filter((a) => !a.hasSubmitted).length,
+    underReviewCount: assignments.filter(
+      (a) =>
+        a.hasSubmitted &&
+        (a.submissionStatus === 'PENDING' || a.submissionStatus === 'UNDER_REVIEW')
+    ).length,
+    evaluatedCount: assignments.filter(
+      (a) =>
+        a.hasSubmitted &&
+        (a.submissionStatus === 'APPROVED' || a.submissionStatus === 'REJECTED')
+    ).length,
+  };
 };
 
 export const getAvailableMentorsList = async (): Promise<{

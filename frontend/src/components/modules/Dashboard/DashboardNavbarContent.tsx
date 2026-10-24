@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 import { NavSection } from '@/types/dashboard.interface';
 import { UserInfo } from '@/types/user.interface';
-import { Bell, Menu, Search } from 'lucide-react';
+import { Bell, Layers, Menu, Search } from 'lucide-react';
 import DashboardMobileSidebar from './DashboardMobileSidebar';
 import UserDropdown from './UserDropdown';
 
@@ -63,8 +64,18 @@ export default function DashboardNavbarContent({
           </div>
         </div>
 
-        {/* Right Action Controls: Notification Bell, ThemeToggle, User Profile Dropdown */}
+        {/* Right Action Controls: Student Batch Badge, Notification Bell, ThemeToggle, User Profile Dropdown */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {userInfo.role === 'STUDENT' && userInfo.assignedBatchId && (
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-primary/10 text-primary border-primary/25 rounded-md"
+            >
+              <Layers className="size-3.5" />
+              <span>{userInfo.assignedBatchId}</span>
+            </Badge>
+          )}
+
           <Button
             variant="outline"
             size="icon"

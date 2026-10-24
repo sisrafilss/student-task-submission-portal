@@ -7,5 +7,6 @@ export interface UserInfo {
   role: UserRole;
   avatarUrl?: string;
   contactNumber?: string;
+  assignedBatchId?: string;
 }
 

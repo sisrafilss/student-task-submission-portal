@@ -11,6 +11,7 @@ import {
   IAssignmentFilterRequest,
   IStudentAssignmentItem,
 } from './assignment.interface';
+import { AssignmentMutationService } from './assignmentMutation.service';
 
 const createAssignment = async (payload: ICreateAssignmentPayload, adminId: string) => {
   const deadlineDate = new Date(payload.deadline);
@@ -165,7 +166,10 @@ const getSingleAssignment = async (id: string) => {
   return assignment;
 };
 
-const getMyBatchAssignments = async (studentId: string): Promise<IStudentAssignmentItem[]> => {
+const getMyBatchAssignments = async (
+  studentId: string,
+  filters?: { searchTerm?: string; status?: string }
+): Promise<IStudentAssignmentItem[]> => {
   const student = await prisma.user.findUnique({
     where: { id: studentId },
   });
@@ -174,11 +178,33 @@ const getMyBatchAssignments = async (studentId: string): Promise<IStudentAssignm
     return [];
   }
 
-  const assignments = await prisma.assignment.findMany({
+  const batchInfo = await prisma.batch.findFirst({
     where: {
+      OR: [
+        { batchCode: student.assignedBatchId },
+        { id: student.assignedBatchId },
+      ],
+    },
+  });
+
+  const andConditions: Prisma.AssignmentWhereInput[] = [
+    {
       batchId: student.assignedBatchId,
       status: 'PUBLISHED',
     },
+  ];
+
+  if (filters?.searchTerm) {
+    andConditions.push({
+      OR: [
+        { title: { contains: filters.searchTerm, mode: 'insensitive' } },
+        { description: { contains: filters.searchTerm, mode: 'insensitive' } },
+      ],
+    });
+  }
+
+  const assignments = await prisma.assignment.findMany({
+    where: { AND: andConditions },
     orderBy: { createdAt: 'desc' },
     include: {
       submissions: {
@@ -194,13 +220,15 @@ const getMyBatchAssignments = async (studentId: string): Promise<IStudentAssignm
     },
   });
 
-  return assignments.map((item) => {
+  const mapped = assignments.map((item) => {
     const studentSubmission = item.submissions[0] || null;
     return {
       id: item.id,
       title: item.title,
       description: item.description,
       batchId: item.batchId,
+      batchName: batchInfo?.name || item.batchId,
+      courseTrack: batchInfo?.track || 'Full Stack Web',
       deadline: item.deadline,
       totalMarks: item.totalMarks,
       rubrics: item.rubrics,
@@ -213,45 +241,23 @@ const getMyBatchAssignments = async (studentId: string): Promise<IStudentAssignm
       feedback: studentSubmission ? studentSubmission.feedback : null,
     };
   });
-};
 
-const updateAssignmentMentors = async (
-  assignmentId: string,
-  payload: IUpdateAssignmentMentorsPayload
-) => {
-  const assignment = await prisma.assignment.findUnique({
-    where: { id: assignmentId },
-  });
-
-  if (!assignment) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Assignment not found');
+  if (filters?.status) {
+    if (filters.status === 'NOT_SUBMITTED') {
+      return mapped.filter((a) => !a.hasSubmitted);
+    }
+    if (filters.status === 'UNDER_REVIEW') {
+      return mapped.filter((a) => a.submissionStatus === 'PENDING' || a.submissionStatus === 'UNDER_REVIEW');
+    }
+    if (filters.status === 'EVALUATED') {
+      return mapped.filter((a) => a.submissionStatus === 'APPROVED' || a.submissionStatus === 'REJECTED');
+    }
   }
 
-  const operations = payload.mentors.map((item) =>
-    prisma.assignmentMentor.upsert({
-      where: {
-        assignmentId_mentorId: {
-          assignmentId,
-          mentorId: item.mentorId,
-        },
-      },
-      update: {
-        maxQuota: item.maxQuota,
-      },
-      create: {
-        assignmentId,
-        mentorId: item.mentorId,
-        maxQuota: item.maxQuota,
-        currentAssignedCount: 0,
-      },
-      include: {
-        mentor: { select: { id: true, name: true, email: true } },
-      },
-    })
-  );
-
-  return await prisma.$transaction(operations);
+  return mapped;
 };
+
+const updateAssignmentMentors = AssignmentMutationService.updateAssignmentMentors;
 
 const getActiveMentors = async () => {
   return await prisma.user.findMany({
@@ -261,107 +267,8 @@ const getActiveMentors = async () => {
   });
 };
 
-const updateAssignment = async (id: string, payload: IUpdateAssignmentPayload) => {
-  const existing = await prisma.assignment.findUnique({
-    where: { id },
-    include: { mentors: true },
-  });
-
-  if (!existing) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Assignment not found');
-  }
-
-  return await prisma.$transaction(async (tx) => {
-    const updateData: Prisma.AssignmentUpdateInput = {};
-
-    if (payload.title !== undefined) updateData.title = payload.title;
-    if (payload.description !== undefined) updateData.description = payload.description;
-    if (payload.batchId !== undefined) updateData.batchId = payload.batchId;
-    if (payload.totalMarks !== undefined) updateData.totalMarks = payload.totalMarks;
-    if (payload.maxPerMentor !== undefined) updateData.maxPerMentor = payload.maxPerMentor;
-    if (payload.status !== undefined) updateData.status = payload.status;
-    if (payload.rubrics !== undefined) {
-      updateData.rubrics = JSON.parse(JSON.stringify(payload.rubrics));
-    }
-    if (payload.deadline !== undefined) {
-      const parsedDate = new Date(payload.deadline);
-      if (isNaN(parsedDate.getTime())) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid deadline timestamp');
-      }
-      updateData.deadline = parsedDate;
-    }
-
-    const updated = await tx.assignment.update({
-      where: { id },
-      data: updateData,
-      include: {
-        mentors: {
-          include: {
-            mentor: { select: { id: true, name: true, email: true, expertise: true } },
-          },
-        },
-        createdBy: {
-          select: { id: true, name: true, email: true },
-        },
-      },
-    });
-
-    if (payload.mentorQuotas && payload.mentorQuotas.length > 0) {
-      const defaultMax = payload.maxPerMentor || existing.maxPerMentor || 10;
-      for (const item of payload.mentorQuotas) {
-        await tx.assignmentMentor.upsert({
-          where: {
-            assignmentId_mentorId: {
-              assignmentId: id,
-              mentorId: item.mentorId,
-            },
-          },
-          update: {
-            maxQuota: item.maxQuota || defaultMax,
-          },
-          create: {
-            assignmentId: id,
-            mentorId: item.mentorId,
-            maxQuota: item.maxQuota || defaultMax,
-            currentAssignedCount: 0,
-          },
-        });
-      }
-    }
-
-    return updated;
-  });
-};
-
-const deleteAssignment = async (id: string) => {
-  const existing = await prisma.assignment.findUnique({
-    where: { id },
-    select: { id: true, title: true },
-  });
-
-  if (!existing) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Assignment not found');
-  }
-
-  return await prisma.$transaction(async (tx) => {
-    // 1. Delete all submissions for this assignment
-    await tx.submission.deleteMany({
-      where: { assignmentId: id },
-    });
-
-    // 2. Delete all assignment mentor quotas
-    await tx.assignmentMentor.deleteMany({
-      where: { assignmentId: id },
-    });
-
-    // 3. Delete the assignment itself
-    const deleted = await tx.assignment.delete({
-      where: { id },
-    });
-
-    return deleted;
-  });
-};
+const updateAssignment = AssignmentMutationService.updateAssignment;
+const deleteAssignment = AssignmentMutationService.deleteAssignment;
 
 export const AssignmentService = {
   createAssignment,

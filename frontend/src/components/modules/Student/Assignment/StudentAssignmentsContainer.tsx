@@ -1,7 +1,4 @@
-import {
-  getStudentAssignmentsWithStatus,
-  getStudentBatchAssignments,
-} from '@/services/assignments/assignmentManagement';
+import { getStudentBatchAssignments } from '@/services/assignments/assignmentManagement';
 import { IAssignment, SubmissionStatus } from '@/types/submission.interface';
 import React from 'react';
 import AssignmentCardGrid from './AssignmentCardGrid';
@@ -13,53 +10,7 @@ interface StudentAssignmentsContainerProps {
 export default async function StudentAssignmentsContainer({
   searchParams,
 }: StudentAssignmentsContainerProps) {
-  // 1. Attempt fetching real student batch assignments from backend
-  const backendRes = await getStudentBatchAssignments();
-
-  if (backendRes.success && backendRes.data && backendRes.data.length > 0) {
-    const mappedAssignments: IAssignment[] = backendRes.data.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      batchId: item.batchId,
-      batchName: item.batchId,
-      courseTrack: 'Full Stack Web',
-      deadline: item.deadline,
-      maxScore: item.totalMarks,
-      status: (item.status === 'CLOSED' ? 'CLOSED' : 'OPEN') as 'OPEN' | 'CLOSED',
-      rubrics: Array.isArray(item.rubrics)
-        ? item.rubrics.map((r) => ({
-            criteria: r.criterion,
-            marks: r.maxMarks,
-            description: r.criterion,
-          }))
-        : [],
-      studentSubmissionStatus: item.submissionStatus as SubmissionStatus | 'NOT_SUBMITTED',
-      mySubmission: item.hasSubmitted
-        ? {
-            id: item.submissionId || '',
-            studentId: '',
-            studentName: '',
-            studentEmail: '',
-            assignmentId: item.id,
-            assignmentTitle: item.title,
-            projectName: item.title,
-            repoUrl: '',
-            liveUrl: '',
-            description: '',
-            status: item.submissionStatus as SubmissionStatus,
-            score: item.marks,
-            feedback: item.feedback,
-            createdAt: item.submittedAt || new Date().toISOString(),
-            updatedAt: item.submittedAt || new Date().toISOString(),
-          }
-        : null,
-    }));
-
-    return <AssignmentCardGrid assignments={mappedAssignments} />;
-  }
-
-  // 2. Fallback to mock data for offline unit test execution
+  // 1. Resolve search and filter parameters from URL
   const resolvedParams = await searchParams;
   const queryParts: string[] = [];
   if (resolvedParams.searchTerm) {
@@ -73,7 +24,53 @@ export default async function StudentAssignmentsContainer({
   }
 
   const queryString = queryParts.join('&');
-  const { assignments } = await getStudentAssignmentsWithStatus(queryString, 'std-1');
 
-  return <AssignmentCardGrid assignments={assignments} />;
+  // 2. Fetch real student batch assignments from backend API with active filters
+  const backendRes = await getStudentBatchAssignments(queryString);
+
+  if (!backendRes.success || !backendRes.data || backendRes.data.length === 0) {
+    return <AssignmentCardGrid assignments={[]} />;
+  }
+
+  // 3. Map backend response directly into UI Assignment contract
+  const mappedAssignments: IAssignment[] = backendRes.data.map((item) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    batchId: item.batchId,
+    batchName: item.batchName || item.batchId,
+    courseTrack: item.courseTrack || 'Full Stack Web',
+    deadline: item.deadline,
+    maxScore: item.totalMarks,
+    status: (item.status === 'CLOSED' ? 'CLOSED' : 'OPEN') as 'OPEN' | 'CLOSED',
+    rubrics: Array.isArray(item.rubrics)
+      ? item.rubrics.map((r) => ({
+          criteria: r.criterion,
+          marks: r.maxMarks,
+          description: r.criterion,
+        }))
+      : [],
+    studentSubmissionStatus: item.submissionStatus as SubmissionStatus | 'NOT_SUBMITTED',
+    mySubmission: item.hasSubmitted
+      ? {
+          id: item.submissionId || '',
+          studentId: '',
+          studentName: '',
+          studentEmail: '',
+          assignmentId: item.id,
+          assignmentTitle: item.title,
+          projectName: item.title,
+          repoUrl: '',
+          liveUrl: '',
+          description: '',
+          status: item.submissionStatus as SubmissionStatus,
+          score: item.marks,
+          feedback: item.feedback,
+          createdAt: item.submittedAt || new Date().toISOString(),
+          updatedAt: item.submittedAt || new Date().toISOString(),
+        }
+      : null,
+  }));
+
+  return <AssignmentCardGrid assignments={mappedAssignments} />;
 }

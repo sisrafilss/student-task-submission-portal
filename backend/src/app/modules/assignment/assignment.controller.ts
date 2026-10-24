@@ -64,7 +64,10 @@ const getSingleAssignment = catchAsync(async (req: Request, res: Response) => {
 
 const getMyBatchAssignments = catchAsync(async (req: Request, res: Response) => {
   const studentId = req.user!.id;
-  const result = await AssignmentService.getMyBatchAssignments(studentId);
+  const result = await AssignmentService.getMyBatchAssignments(
+    studentId,
+    req.query as { searchTerm?: string; status?: string }
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

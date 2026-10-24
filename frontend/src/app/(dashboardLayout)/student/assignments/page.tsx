@@ -4,7 +4,11 @@ import StudentAssignmentsContainer from '@/components/modules/Student/Assignment
 import RefreshButton from '@/components/shared/RefreshButton';
 import SearchFilter from '@/components/shared/SearchFilter';
 import SelectFilter from '@/components/shared/SelectFilter';
-import { getStudentAssignmentsWithStatus } from '@/services/assignments/assignmentManagement';
+import {
+  calculateStudentAssignmentStats,
+  getStudentBatchAssignments,
+} from '@/services/assignments/assignmentManagement';
+import { getUserInfo } from '@/services/auth/getUserInfo';
 import { Suspense } from 'react';
 
 interface StudentAssignmentsPageProps {
@@ -14,8 +18,12 @@ interface StudentAssignmentsPageProps {
 export default async function StudentAssignmentsPage({
   searchParams,
 }: StudentAssignmentsPageProps) {
-  // Fetch overall stats for the header counters
-  const { stats } = await getStudentAssignmentsWithStatus('', 'std-1');
+  // Fetch real student user info and batch assignments to compute live header stats counters
+  const [userInfo, batchRes] = await Promise.all([
+    getUserInfo(),
+    getStudentBatchAssignments(''),
+  ]);
+  const stats = await calculateStudentAssignmentStats(batchRes.data || []);
 
   const statusOptions = [
     { label: 'Action Required', value: 'NOT_SUBMITTED' },
@@ -30,8 +38,8 @@ export default async function StudentAssignmentsPage({
 
   return (
     <div className="space-y-8">
-      {/* 1. Header with live stats badges */}
-      <AssignmentPortalHeader stats={stats} />
+      {/* 1. Header with live stats badges and enrolled batch */}
+      <AssignmentPortalHeader stats={stats} batchId={userInfo?.assignedBatchId} />
 
       {/* 2. Interactive Search & Filter Toolbar */}
       <div className="space-y-4 pt-1">

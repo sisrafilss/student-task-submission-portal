@@ -49,6 +49,8 @@ export interface IStudentAssignmentItem {
   title: string;
   description: string;
   batchId: string;
+  batchName?: string;
+  courseTrack?: string;
   deadline: Date;
   totalMarks: number;
   rubrics: unknown;
