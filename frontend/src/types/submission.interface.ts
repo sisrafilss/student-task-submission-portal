@@ -1,6 +1,8 @@
 export type SubmissionStatus =
   | 'PENDING'
   | 'UNDER_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
   | 'EVALUATED'
   | 'RESUBMISSION_REQUIRED';
 
@@ -8,6 +10,12 @@ export interface IRubricItem {
   criteria: string;
   marks: number;
   description?: string;
+}
+
+export interface IRubricScoreItem {
+  criteria: string;
+  marksAwarded: number;
+  maxMarks: number;
 }
 
 export interface IResourceLink {
@@ -47,11 +55,22 @@ export interface ISubmission {
   remarks?: string;
   status: SubmissionStatus;
   score?: number | null;
+  maxScore?: number;
   feedback?: string | null;
+  rejectionReason?: string | null;
+  rubricScores?: IRubricScoreItem[];
   evaluatedBy?: string | null;
   evaluatedAt?: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+}
+
+export interface IMentorSubmissionStats {
+  totalSubmissions: number;
+  totalPending: number;
+  totalApproved: number;
+  totalRejected: number;
+  averageScore: number;
 }
 
 export interface ISubmissionFilterOptions {
