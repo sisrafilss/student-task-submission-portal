@@ -32,6 +32,13 @@ export default function AssignmentBatchSelect({
 
   const selectedOption = options.find((opt) => opt.value === value) || options[0];
 
+  // Auto-sync initial value if value is empty and options are available
+  useEffect(() => {
+    if (!value && options.length > 0) {
+      onChange(options[0].value);
+    }
+  }, [value, options, onChange]);
+
   // Click outside listener
   useEffect(() => {
     if (!isOpen) return;
@@ -101,31 +108,37 @@ export default function AssignmentBatchSelect({
       {isOpen && (
         <div className="bg-popover text-popover-foreground border-border absolute left-0 top-full z-50 mt-1.5 w-full rounded-lg border p-1 shadow-lg ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95">
           <div className="space-y-0.5 py-0.5 max-h-56 overflow-y-auto">
-            {options.map((opt) => {
-              const isSelected = opt.value === value;
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-center text-xs text-muted-foreground">
+                No active batches found
+              </div>
+            ) : (
+              options.map((opt) => {
+                const isSelected = opt.value === value;
 
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSelect(opt)}
-                  className={cn(
-                    'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors cursor-pointer',
-                    isSelected
-                      ? 'bg-primary/10 text-primary font-semibold'
-                      : 'text-foreground hover:bg-muted/70 font-normal'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <Layers className="size-3.5 text-muted-foreground" />
-                    <span>{opt.label}</span>
-                  </div>
-                  {isSelected && (
-                    <Check className="text-primary size-3.5 shrink-0 stroke-[2.5]" />
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-xs transition-colors cursor-pointer',
+                      isSelected
+                        ? 'bg-primary/10 text-primary font-semibold'
+                        : 'text-foreground hover:bg-muted/70 font-normal'
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layers className="size-3.5 text-muted-foreground" />
+                      <span>{opt.label}</span>
+                    </div>
+                    {isSelected && (
+                      <Check className="text-primary size-3.5 shrink-0 stroke-[2.5]" />
+                    )}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
       )}

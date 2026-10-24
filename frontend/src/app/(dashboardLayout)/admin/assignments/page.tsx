@@ -1,31 +1,22 @@
-import AssignmentManagementHeader from '@/components/modules/Admin/AssignmentManagement/AssignmentManagementHeader';
+import AssignmentManagementHeaderContainer from '@/components/modules/Admin/AssignmentManagement/AssignmentManagementHeaderContainer';
 import AssignmentTableContainer from '@/components/modules/Admin/AssignmentManagement/AssignmentTableContainer';
 import RefreshButton from '@/components/shared/RefreshButton';
 import SearchFilter from '@/components/shared/SearchFilter';
 import SelectFilter from '@/components/shared/SelectFilter';
 import TableSkeleton from '@/components/shared/TableSkeleton';
-import {
-  getAdminAssignments,
-  getAvailableMentorsList,
-} from '@/services/assignments/assignmentManagement';
 import React, { Suspense } from 'react';
 
 interface AdminAssignmentsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function AdminAssignmentsPage({
+export default function AdminAssignmentsPage({
   searchParams,
 }: AdminAssignmentsPageProps) {
-  const [initialData, mentorsData] = await Promise.all([
-    getAdminAssignments(''),
-    getAvailableMentorsList(),
-  ]);
-
   const batchOptions = [
-    { label: 'Batch 01', value: 'BATCH-01' },
-    { label: 'Batch 02', value: 'BATCH-02' },
-    { label: 'Batch 03', value: 'BATCH-03' },
+    { label: 'Batch 01 (Full Stack Web)', value: 'BATCH-01' },
+    { label: 'Batch 02 (Next.js & Cloud)', value: 'BATCH-02' },
+    { label: 'Batch 03 (React Architecture)', value: 'BATCH-03' },
   ];
 
   const statusOptions = [
@@ -36,11 +27,10 @@ export default async function AdminAssignmentsPage({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header with modal trigger */}
-      <AssignmentManagementHeader
-        totalCount={initialData.meta.total}
-        availableMentors={mentorsData.data}
-      />
+      {/* 1. Header with dynamic mentors & batches loaded inside Suspense */}
+      <Suspense fallback={<div className="h-16 w-full rounded-lg bg-muted/20 animate-pulse" />}>
+        <AssignmentManagementHeaderContainer />
+      </Suspense>
 
       {/* 2. Search & Filter Bar */}
       <Suspense fallback={null}>
@@ -70,7 +60,7 @@ export default async function AdminAssignmentsPage({
         </div>
       </Suspense>
 
-      {/* 3. Table Container */}
+      {/* 3. Table Container Streamed inside Suspense */}
       <Suspense fallback={<TableSkeleton columns={6} rows={6} />}>
         <AssignmentTableContainer searchParams={searchParams} />
       </Suspense>

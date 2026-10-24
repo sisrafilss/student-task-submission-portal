@@ -86,6 +86,37 @@ async function main() {
   });
   console.log('⏳ Seeded First-Time Unactivated Mentor (needsPasswordChange: true):', unactivatedMentor.email);
 
+  // 5. Seed Initial Batches
+  const initialBatches = [
+    {
+      name: 'Batch 01 - Full Stack Web',
+      batchCode: 'BATCH-01',
+      track: 'Full Stack Web',
+      status: 'ACTIVE' as const,
+    },
+    {
+      name: 'Batch 02 - Next.js & Cloud',
+      batchCode: 'BATCH-02',
+      track: 'Next.js & Cloud',
+      status: 'ACTIVE' as const,
+    },
+    {
+      name: 'Batch 03 - React Architecture',
+      batchCode: 'BATCH-03',
+      track: 'React Architecture',
+      status: 'UPCOMING' as const,
+    },
+  ];
+
+  for (const b of initialBatches) {
+    await prisma.batch.upsert({
+      where: { batchCode: b.batchCode },
+      update: { name: b.name, track: b.track, status: b.status },
+      create: b,
+    });
+  }
+  console.log('📦 Seeded initial batches: BATCH-01, BATCH-02, BATCH-03');
+
   const totalUsers = await prisma.user.count();
   console.log(`✅ Seed completed successfully! Total users in database: ${totalUsers}`);
 }

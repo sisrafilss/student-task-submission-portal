@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { IBatchOption } from '@/types/batch.interface';
 import { BookOpen, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState, useTransition } from 'react';
@@ -16,11 +17,13 @@ interface MentorOption {
 interface AssignmentManagementHeaderProps {
   totalCount: number;
   availableMentors: MentorOption[];
+  availableBatches?: IBatchOption[];
 }
 
 export default function AssignmentManagementHeader({
   totalCount,
   availableMentors,
+  availableBatches = [],
 }: AssignmentManagementHeaderProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -60,6 +63,7 @@ export default function AssignmentManagementHeader({
           onClose={() => setIsCreateOpen(false)}
           onSuccess={handleSuccess}
           availableMentors={availableMentors}
+          availableBatches={availableBatches}
         />
       )}
     </div>

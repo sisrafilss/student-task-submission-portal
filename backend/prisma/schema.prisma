@@ -38,6 +38,12 @@ enum SubmissionStatus {
   REJECTED
 }
 
+enum BatchStatus {
+  ACTIVE
+  UPCOMING
+  COMPLETED
+}
+
 model User {
   id                  String             @id @default(uuid())
   email               String             @unique
@@ -147,4 +153,18 @@ model Submission {
   @@index([assignmentId])
   @@index([status])
   @@map("submissions")
+}
+
+model Batch {
+  id        String      @id @default(uuid())
+  name      String
+  batchCode String      @unique
+  track     String
+  status    BatchStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([batchCode])
+  @@index([status])
+  @@map("batches")
 }

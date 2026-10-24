@@ -3,6 +3,7 @@ import { AuthRoutes } from '../modules/auth/auth.routes';
 import { HealthRoutes } from '../modules/health/health.routes';
 import { AssignmentRoutes } from '../modules/assignment/assignment.routes';
 import { SubmissionRoutes } from '../modules/submission/submission.routes';
+import { BatchRoutes } from '../modules/batch/batch.routes';
 
 const router = Router();
 
@@ -22,6 +23,10 @@ const moduleRoutes = [
   {
     path: '/submissions',
     route: SubmissionRoutes,
+  },
+  {
+    path: '/batches',
+    route: BatchRoutes,
   },
 ];
 

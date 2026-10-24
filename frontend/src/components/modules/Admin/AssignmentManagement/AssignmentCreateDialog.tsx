@@ -19,6 +19,7 @@ import {
 } from '@/hooks/useAssignmentCreateForm';
 import { Loader2, Sparkles } from 'lucide-react';
 import React from 'react';
+import { IBatchOption } from '@/types/batch.interface';
 import AssignmentBatchSelect from './AssignmentBatchSelect';
 import AssignmentDeadlinePicker from './AssignmentDeadlinePicker';
 import AssignmentMentorQuotaPicker from './AssignmentMentorQuotaPicker';
@@ -29,6 +30,7 @@ interface AssignmentCreateDialogProps {
   onClose: () => void;
   onSuccess: () => void;
   availableMentors: MentorOption[];
+  availableBatches?: IBatchOption[];
 }
 
 export default function AssignmentCreateDialog({
@@ -36,6 +38,7 @@ export default function AssignmentCreateDialog({
   onClose,
   onSuccess,
   availableMentors,
+  availableBatches,
 }: AssignmentCreateDialogProps) {
   const {
     formRef,
@@ -126,6 +129,7 @@ export default function AssignmentCreateDialog({
                     <AssignmentBatchSelect
                       value={formValues.batchId}
                       onChange={setters.setBatchId}
+                      options={availableBatches && availableBatches.length > 0 ? availableBatches : undefined}
                     />
                     <InputFieldError field="batchId" state={state} />
                   </Field>
