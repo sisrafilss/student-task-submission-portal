@@ -38,7 +38,7 @@ router.get(
 
 router.get(
   '/',
-  auth('ADMIN', 'INSTRUCTOR'),
+  auth('ADMIN', 'INSTRUCTOR', 'MENTOR'),
   validateRequest(assignmentQueryZodSchema),
   AssignmentController.getAllAssignments
 );

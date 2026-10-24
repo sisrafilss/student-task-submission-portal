@@ -30,6 +30,12 @@ router.get(
   SubmissionController.getAssignedSubmissions
 );
 
+router.get(
+  '/mentor-stats',
+  auth('MENTOR'),
+  SubmissionController.getMentorStats
+);
+
 router.patch(
   '/:id/review',
   auth('MENTOR'),

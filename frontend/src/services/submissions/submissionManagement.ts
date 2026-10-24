@@ -24,7 +24,44 @@ export const resetSubmissionsStoreForTesting = async () => {
 export const getAvailableAssignments = async (): Promise<{
   success: boolean;
   data: IAssignment[];
-}> => ({ success: true, data: mockAssignments });
+}> => {
+  try {
+    const res = await serverFetch.get('/assignments?limit=100', { cache: 'no-store' });
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && Array.isArray(result.data)) {
+        const mapped: IAssignment[] = result.data.map((item: {
+          id: string;
+          title: string;
+          totalMarks: number;
+          batchId: string;
+          status: string;
+          deadline: string;
+          description?: string;
+        }) => ({
+          id: item.id,
+          title: item.title,
+          courseTrack: 'Full Stack Web',
+          batchId: item.batchId,
+          batchName: item.batchId,
+          deadline: item.deadline,
+          maxScore: item.totalMarks,
+          status: (item.status === 'PUBLISHED' ? 'OPEN' : item.status) as IAssignment['status'],
+          description: item.description || '',
+          requirements: [],
+          rubrics: [],
+        }));
+        return { success: true, data: mapped };
+      }
+    } else {
+      return { success: true, data: mockAssignments };
+    }
+  } catch {
+    // fallback if unauthenticated / offline / unit test harness
+    return { success: true, data: mockAssignments };
+  }
+  return { success: true, data: [] };
+};
 
 export const checkAssignmentSubmissionStatus = async (
   assignmentId: string,
@@ -176,25 +213,21 @@ export const resetRateLimitForTesting = async (studentId = 'std-1') => {
 
 export const getMentorSubmissionStats = async (): Promise<IMentorSubmissionStats> => {
   try {
-    const res = await serverFetch.get('/submissions/assigned', { cache: 'no-store' });
+    const res = await serverFetch.get('/submissions/mentor-stats', { cache: 'no-store' });
     if (res.ok) {
       const result = await res.json();
-      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-        const items = result.data;
-        const totalPending = items.filter((s: { status: string }) => s.status === 'PENDING').length;
-        const totalApproved = items.filter((s: { status: string }) => s.status === 'APPROVED').length;
-        const totalRejected = items.filter((s: { status: string }) => s.status === 'REJECTED').length;
+      if (result.success && result.data) {
         return {
-          totalSubmissions: items.length,
-          totalPending,
-          totalApproved,
-          totalRejected,
-          averageScore: 85,
+          totalSubmissions: result.data.totalSubmissions ?? 0,
+          totalPending: result.data.totalPending ?? 0,
+          totalApproved: result.data.totalApproved ?? 0,
+          totalRejected: result.data.totalRejected ?? 0,
+          averageScore: result.data.averageScore ?? 0,
         };
       }
     }
   } catch {
-    // fallback
+    // fallback for unit test harness
   }
 
   const totalSubmissions = submissionsStore.length;
@@ -212,7 +245,7 @@ export const getMentorSubmissions = async (
     const res = await serverFetch.get(`/submissions/assigned?${queryString}`, { cache: 'no-store' });
     if (res.ok) {
       const result = await res.json();
-      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+      if (result.success && Array.isArray(result.data)) {
         const mappedData: ISubmission[] = result.data.map((item: {
           id: string;
           student?: { id: string; name: string; email: string };
@@ -252,7 +285,7 @@ export const getMentorSubmissions = async (
           meta: {
             page: result.meta?.page || 1,
             limit: result.meta?.limit || 10,
-            total: result.meta?.total || mappedData.length,
+            total: result.meta?.total ?? mappedData.length,
             totalPage: result.meta?.totalPages || 1,
           },
         };

@@ -126,6 +126,18 @@ const getSingleSubmission = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMentorStats = catchAsync(async (req: Request, res: Response) => {
+  const mentorId = req.user!.id;
+  const result = await SubmissionService.getMentorStats(mentorId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Mentor submission stats retrieved successfully',
+    data: result,
+  });
+});
+
 export const SubmissionController = {
   submitAssignment,
   getMySubmissions,
@@ -133,5 +145,6 @@ export const SubmissionController = {
   reviewSubmission,
   getAllSubmissions,
   getSingleSubmission,
+  getMentorStats,
 };
 

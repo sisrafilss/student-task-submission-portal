@@ -63,7 +63,6 @@ export const mentorNavItems: NavSection[] = [
         title: 'Submissions Queue',
         href: '/mentor/submissions',
         icon: 'ClipboardCheck',
-        badge: '14',
         roles: ['MENTOR'],
       },
       {

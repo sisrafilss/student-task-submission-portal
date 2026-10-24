@@ -91,9 +91,14 @@ const getAssignedSubmissions = async (
 
   if (searchTerm) {
     andConditions.push({
-      OR: submissionSearchableFields.map((field) => ({
-        [field]: { contains: searchTerm, mode: 'insensitive' },
-      })),
+      OR: [
+        { repoUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { liveUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { notes: { contains: searchTerm, mode: 'insensitive' } },
+        { student: { name: { contains: searchTerm, mode: 'insensitive' } } },
+        { student: { email: { contains: searchTerm, mode: 'insensitive' } } },
+        { assignment: { title: { contains: searchTerm, mode: 'insensitive' } } },
+      ],
     });
   }
 
@@ -188,9 +193,14 @@ const getAllSubmissions = async (
 
   if (searchTerm) {
     andConditions.push({
-      OR: submissionSearchableFields.map((field) => ({
-        [field]: { contains: searchTerm, mode: 'insensitive' },
-      })),
+      OR: [
+        { repoUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { liveUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { notes: { contains: searchTerm, mode: 'insensitive' } },
+        { student: { name: { contains: searchTerm, mode: 'insensitive' } } },
+        { student: { email: { contains: searchTerm, mode: 'insensitive' } } },
+        { assignment: { title: { contains: searchTerm, mode: 'insensitive' } } },
+      ],
     });
   }
 
@@ -255,6 +265,40 @@ const getSingleSubmission = async (id: string, user: { id: string; role: string 
   return submission;
 };
 
+const getMentorStats = async (mentorId: string) => {
+  const [totalSubmissions, totalPending, totalApproved, totalRejected, approvedSubmissions] =
+    await Promise.all([
+      prisma.submission.count({ where: { mentorId } }),
+      prisma.submission.count({
+        where: { mentorId, status: { in: ['PENDING', 'UNDER_REVIEW'] } },
+      }),
+      prisma.submission.count({ where: { mentorId, status: 'APPROVED' } }),
+      prisma.submission.count({ where: { mentorId, status: 'REJECTED' } }),
+      prisma.submission.findMany({
+        where: { mentorId, status: 'APPROVED', marks: { not: null } },
+        select: { marks: true, assignment: { select: { totalMarks: true } } },
+      }),
+    ]);
+
+  let averageScore = 0;
+  if (approvedSubmissions.length > 0) {
+    const percentageSum = approvedSubmissions.reduce((acc, curr) => {
+      const max = curr.assignment?.totalMarks || 100;
+      const percentage = max > 0 ? ((curr.marks || 0) / max) * 100 : 0;
+      return acc + percentage;
+    }, 0);
+    averageScore = Math.round(percentageSum / approvedSubmissions.length);
+  }
+
+  return {
+    totalSubmissions,
+    totalPending,
+    totalApproved,
+    totalRejected,
+    averageScore,
+  };
+};
+
 export const SubmissionService = {
   submitAssignment,
   getMySubmissions,
@@ -262,5 +306,6 @@ export const SubmissionService = {
   reviewSubmission,
   getAllSubmissions,
   getSingleSubmission,
+  getMentorStats,
 };
 
