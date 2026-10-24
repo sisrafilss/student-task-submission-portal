@@ -18,8 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mentorSpecializations } from '@/services/admin/mockMentors';
-import { initialBatches } from '@/services/admin/mockStudents';
 import { createMentor } from '@/services/admin/mentorManagement';
 import { Copy, KeyRound, Loader2, RefreshCw } from 'lucide-react';
 import React, { useActionState, useEffect, useRef, useState } from 'react';
@@ -27,12 +25,23 @@ import { toast } from 'sonner';
 
 interface MentorCreateDialogProps {
   open: boolean;
+  batches?: { id: string; name: string }[];
+  specializations?: { label: string; value: string }[];
   onClose: () => void;
   onSuccess: () => void;
 }
 
+const fallbackSpecializations = [
+  { label: 'Next.js & React Ecosystem', value: 'Next.js & React Ecosystem' },
+  { label: 'Full Stack MERN', value: 'Full Stack MERN' },
+  { label: 'Backend Architecture & Node.js', value: 'Backend Architecture & Node.js' },
+  { label: 'TypeScript & System Design', value: 'TypeScript & System Design' },
+];
+
 export default function MentorCreateDialog({
   open,
+  batches = [],
+  specializations = fallbackSpecializations,
   onClose,
   onSuccess,
 }: MentorCreateDialogProps) {
@@ -41,8 +50,8 @@ export default function MentorCreateDialog({
     () => 'Pass@' + Math.floor(100000 + Math.random() * 900000)
   );
   const [gender, setGender] = useState('MALE');
-  const [expertise, setExpertise] = useState(mentorSpecializations[0].value);
-  const [batchId, setBatchId] = useState(initialBatches[0].id);
+  const [expertise, setExpertise] = useState(specializations[0]?.value || 'Next.js & React Ecosystem');
+  const [batchId, setBatchId] = useState(batches[0]?.id || 'BATCH-01');
 
   const [state, formAction, isPending] = useActionState(createMentor, null);
 
@@ -58,8 +67,7 @@ export default function MentorCreateDialog({
   }, [state, onSuccess, onClose]);
 
   const handleGeneratePassword = () => {
-    const newPass = 'Pass@' + Math.floor(100000 + Math.random() * 900000);
-    setTemporaryPassword(newPass);
+    setTemporaryPassword('Pass@' + Math.floor(100000 + Math.random() * 900000));
   };
 
   const handleCopyPassword = () => {
@@ -67,10 +75,12 @@ export default function MentorCreateDialog({
     toast.success('Temporary password copied to clipboard!');
   };
 
+  const availableBatches = batches.length > 0 ? batches : [{ id: 'BATCH-01', name: 'Batch 01 (General)' }];
+  const availableSpecs = specializations.length > 0 ? specializations : fallbackSpecializations;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] w-full sm:max-w-xl flex flex-col p-0 overflow-hidden shadow-2xl rounded-xl border border-border/70">
-        {/* Modal Header with clean divider */}
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50 shrink-0">
           <DialogTitle className="text-xl font-bold tracking-tight">Add New Mentor</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground mt-1">
@@ -78,49 +88,25 @@ export default function MentorCreateDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Modal Form with spacious, balanced padding & gap hierarchy */}
-        <form
-          ref={formRef}
-          action={formAction}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-        >
+        <form ref={formRef} action={formAction} noValidate className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto px-6 py-5">
             <FieldGroup className="gap-5">
-              {/* Full Name */}
               <Field className="gap-1.5">
                 <FieldLabel htmlFor="create-mentor-name" className="text-xs font-semibold text-foreground/90">
                   Full Name *
                 </FieldLabel>
-                <Input
-                  id="create-mentor-name"
-                  name="name"
-                  placeholder="e.g. Rasel Mahmud"
-                  required
-                  disabled={isPending}
-                  className="h-10 text-sm"
-                />
+                <Input id="create-mentor-name" name="name" placeholder="e.g. Rasel Mahmud" required disabled={isPending} className="h-10 text-sm" />
                 <InputFieldError field="name" state={state} />
               </Field>
 
-              {/* Email Address */}
               <Field className="gap-1.5">
                 <FieldLabel htmlFor="create-mentor-email" className="text-xs font-semibold text-foreground/90">
                   Email Address *
                 </FieldLabel>
-                <Input
-                  id="create-mentor-email"
-                  name="email"
-                  type="email"
-                  placeholder="mentor@programminghero.com"
-                  required
-                  disabled={isPending}
-                  className="h-10 text-sm"
-                />
+                <Input id="create-mentor-email" name="email" type="email" placeholder="mentor@programminghero.com" required disabled={isPending} className="h-10 text-sm" />
                 <InputFieldError field="email" state={state} />
               </Field>
 
-              {/* One-Time Temporary Password */}
               <Field className="gap-1.5">
                 <FieldLabel htmlFor="create-mentor-pass" className="text-xs font-semibold text-foreground/90">
                   One-Time Temporary Password *
@@ -138,26 +124,10 @@ export default function MentorCreateDialog({
                       disabled={isPending}
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGeneratePassword}
-                    title="Generate new password"
-                    disabled={isPending}
-                    className="h-10 px-3"
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={handleGeneratePassword} title="Generate new password" disabled={isPending} className="h-10 px-3">
                     <RefreshCw className="size-3.5" />
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyPassword}
-                    title="Copy password"
-                    disabled={isPending}
-                    className="h-10 px-3"
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={handleCopyPassword} title="Copy password" disabled={isPending} className="h-10 px-3">
                     <Copy className="size-3.5" />
                   </Button>
                 </div>
@@ -167,20 +137,12 @@ export default function MentorCreateDialog({
                 <InputFieldError field="temporaryPassword" state={state} />
               </Field>
 
-              {/* Contact Number & Gender Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field className="gap-1.5">
                   <FieldLabel htmlFor="create-mentor-contact" className="text-xs font-semibold text-foreground/90">
                     Contact Number *
                   </FieldLabel>
-                  <Input
-                    id="create-mentor-contact"
-                    name="contactNumber"
-                    placeholder="+8801700112233"
-                    required
-                    disabled={isPending}
-                    className="h-10 text-sm"
-                  />
+                  <Input id="create-mentor-contact" name="contactNumber" placeholder="+8801700112233" required disabled={isPending} className="h-10 text-sm" />
                   <InputFieldError field="contactNumber" state={state} />
                 </Field>
 
@@ -201,7 +163,6 @@ export default function MentorCreateDialog({
                 </Field>
               </div>
 
-              {/* Specialization & Assigned Batch Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field className="gap-1.5">
                   <FieldLabel className="text-xs font-semibold text-foreground/90">Specialization *</FieldLabel>
@@ -211,10 +172,8 @@ export default function MentorCreateDialog({
                       <SelectValue placeholder="Select Specialization" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mentorSpecializations.map((spec) => (
-                        <SelectItem key={spec.value} value={spec.value}>
-                          {spec.label}
-                        </SelectItem>
+                      {availableSpecs.map((spec) => (
+                        <SelectItem key={spec.value} value={spec.value}>{spec.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -229,10 +188,8 @@ export default function MentorCreateDialog({
                       <SelectValue placeholder="Select Batch" />
                     </SelectTrigger>
                     <SelectContent>
-                      {initialBatches.map((batch) => (
-                        <SelectItem key={batch.id} value={batch.id}>
-                          {batch.name}
-                        </SelectItem>
+                      {availableBatches.map((batch) => (
+                        <SelectItem key={batch.id} value={batch.id}>{batch.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -240,41 +197,21 @@ export default function MentorCreateDialog({
                 </Field>
               </div>
 
-              {/* Bio Field */}
               <Field className="gap-1.5">
                 <FieldLabel htmlFor="create-mentor-bio" className="text-xs font-semibold text-foreground/90">
                   Bio & Background (Optional)
                 </FieldLabel>
-                <Input
-                  id="create-mentor-bio"
-                  name="bio"
-                  placeholder="Brief summary of expertise and industry experience..."
-                  disabled={isPending}
-                  className="h-10 text-sm"
-                />
+                <Input id="create-mentor-bio" name="bio" placeholder="Brief summary of expertise..." disabled={isPending} className="h-10 text-sm" />
                 <InputFieldError field="bio" state={state} />
               </Field>
             </FieldGroup>
           </div>
 
-          {/* Action Footer Buttons pinned with generous border and padding */}
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border/60 bg-muted/15 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="default"
-              onClick={onClose}
-              disabled={isPending}
-              className="h-9 px-4 text-xs font-medium"
-            >
+            <Button type="button" variant="outline" size="default" onClick={onClose} disabled={isPending} className="h-9 px-4 text-xs font-medium">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              size="default"
-              disabled={isPending}
-              className="h-9 px-5 min-w-28 text-xs font-semibold shadow-sm"
-            >
+            <Button type="submit" size="default" disabled={isPending} className="h-9 px-5 min-w-28 text-xs font-semibold shadow-sm">
               {isPending ? (
                 <>
                   <Loader2 className="mr-1.5 size-3.5 animate-spin" />

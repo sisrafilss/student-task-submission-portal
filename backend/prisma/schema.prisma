@@ -17,6 +17,8 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   BLOCKED
+  GRADUATED
+  ON_LEAVE
 }
 
 enum Gender {
@@ -52,14 +54,19 @@ model User {
   role                UserRole           @default(STUDENT)
   status              UserStatus         @default(ACTIVE)
   needsPasswordChange Boolean            @default(false)
+  studentId           String?            @unique
+  mentorId            String?            @unique
+  enrolledTrack       String?
   contactNumber       String?
   gender              Gender?
   avatarUrl           String?
   bio                 String?
   expertise           String?
   assignedBatchId     String?
+  address             String?
   githubUsername      String?
   linkedinUrl         String?
+  isDeleted           Boolean            @default(false)
   refreshTokens       RefreshToken[]
   createdAssignments  Assignment[]       @relation("AssignmentCreator")
   assignedMentorships AssignmentMentor[]
@@ -70,6 +77,10 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([studentId])
+  @@index([mentorId])
+  @@index([assignedBatchId])
+  @@index([isDeleted])
   @@map("users")
 }
 

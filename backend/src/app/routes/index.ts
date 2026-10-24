@@ -4,6 +4,8 @@ import { HealthRoutes } from '../modules/health/health.routes';
 import { AssignmentRoutes } from '../modules/assignment/assignment.routes';
 import { SubmissionRoutes } from '../modules/submission/submission.routes';
 import { BatchRoutes } from '../modules/batch/batch.routes';
+import { StudentRoutes } from '../modules/student/student.routes';
+import { MentorRoutes } from '../modules/mentor/mentor.routes';
 
 const router = Router();
 
@@ -27,6 +29,14 @@ const moduleRoutes = [
   {
     path: '/batches',
     route: BatchRoutes,
+  },
+  {
+    path: '/students',
+    route: StudentRoutes,
+  },
+  {
+    path: '/mentors',
+    route: MentorRoutes,
   },
 ];
 

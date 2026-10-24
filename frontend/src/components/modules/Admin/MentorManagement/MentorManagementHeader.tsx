@@ -6,7 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import MentorCreateDialog from './MentorCreateDialog';
 
-export default function MentorManagementHeader() {
+interface MentorManagementHeaderProps {
+  batches?: { id: string; name: string }[];
+  specializations?: { label: string; value: string }[];
+}
+
+export default function MentorManagementHeader({
+  batches = [],
+  specializations = [],
+}: MentorManagementHeaderProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -32,6 +40,8 @@ export default function MentorManagementHeader() {
       {isAddOpen && (
         <MentorCreateDialog
           open={isAddOpen}
+          batches={batches}
+          specializations={specializations}
           onClose={() => setIsAddOpen(false)}
           onSuccess={handleSuccess}
         />
@@ -39,4 +49,3 @@ export default function MentorManagementHeader() {
     </>
   );
 }
-

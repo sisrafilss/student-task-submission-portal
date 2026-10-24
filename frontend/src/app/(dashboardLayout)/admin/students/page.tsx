@@ -1,10 +1,7 @@
-import StudentManagementHeader from '@/components/modules/Admin/StudentManagement/StudentManagementHeader';
+import StudentFilterToolbar from '@/components/modules/Admin/StudentManagement/StudentFilterToolbar';
+import StudentManagementHeaderContainer from '@/components/modules/Admin/StudentManagement/StudentManagementHeaderContainer';
 import StudentTableContainer from '@/components/modules/Admin/StudentManagement/StudentTableContainer';
-import RefreshButton from '@/components/shared/RefreshButton';
-import SearchFilter from '@/components/shared/SearchFilter';
-import SelectFilter from '@/components/shared/SelectFilter';
 import TableSkeleton from '@/components/shared/TableSkeleton';
-import { initialBatches } from '@/services/admin/mockStudents';
 import { Suspense } from 'react';
 
 interface AdminStudentsPageProps {
@@ -12,52 +9,19 @@ interface AdminStudentsPageProps {
 }
 
 export default function AdminStudentsPage({ searchParams }: AdminStudentsPageProps) {
-  const batchOptions = initialBatches.map((batch) => ({
-    label: batch.name,
-    value: batch.id,
-  }));
-
-  const statusOptions = [
-    { label: 'Active', value: 'ACTIVE' },
-    { label: 'Inactive', value: 'INACTIVE' },
-    { label: 'Blocked', value: 'BLOCKED' },
-    { label: 'Graduated', value: 'GRADUATED' },
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <StudentManagementHeader />
-
-      {/* Filter and Search Controls Toolbar wrapped in Suspense for useSearchParams */}
-      <Suspense fallback={<div className="h-10 w-full rounded-lg bg-muted/20 animate-pulse" />}>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <SearchFilter
-            paramName="searchTerm"
-            placeholder="Search by student name, ID, or email..."
-            className="flex-1"
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <SelectFilter
-              paramName="batch"
-              placeholder="Search batch..."
-              allLabel="All Batches"
-              icon="Layers"
-              options={batchOptions}
-            />
-            <SelectFilter
-              paramName="status"
-              placeholder="Search status..."
-              allLabel="All Statuses"
-              icon="SlidersHorizontal"
-              options={statusOptions}
-            />
-            <RefreshButton />
-          </div>
-        </div>
+      {/* 1. Page Header with dynamic batches */}
+      <Suspense fallback={<div className="h-16 w-full rounded-lg bg-muted/20 animate-pulse" />}>
+        <StudentManagementHeaderContainer />
       </Suspense>
 
-      {/* Student Data Table & Pagination dynamically streamed inside Suspense */}
+      {/* 2. Filter and Search Controls Toolbar wrapped in Suspense */}
+      <Suspense fallback={<div className="h-10 w-full rounded-lg bg-muted/20 animate-pulse" />}>
+        <StudentFilterToolbar />
+      </Suspense>
+
+      {/* 3. Student Data Table & Pagination dynamically streamed inside Suspense */}
       <Suspense fallback={<TableSkeleton columns={7} rows={8} />}>
         <StudentTableContainer searchParams={searchParams} />
       </Suspense>

@@ -13,9 +13,15 @@ import MentorViewDetailDialog from './MentorViewDetailDialog';
 
 interface MentorTableProps {
   mentors: IMentor[];
+  batches?: { id: string; name: string }[];
+  specializations?: { label: string; value: string }[];
 }
 
-export default function MentorTable({ mentors }: MentorTableProps) {
+export default function MentorTable({
+  mentors,
+  batches = [],
+  specializations = [],
+}: MentorTableProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -75,6 +81,8 @@ export default function MentorTable({ mentors }: MentorTableProps) {
         <MentorFormDialog
           open={Boolean(editingMentor)}
           mentor={editingMentor}
+          batches={batches}
+          specializations={specializations}
           onClose={() => setEditingMentor(null)}
           onSuccess={() => {
             setEditingMentor(null);
