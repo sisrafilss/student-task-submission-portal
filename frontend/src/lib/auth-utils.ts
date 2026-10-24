@@ -5,7 +5,7 @@ export type RouteConfig = {
   patterns: RegExp[];
 };
 
-export const authRoutes = ["/login", "/register"];
+export const authRoutes = ["/login", "/register", "/change-password"];
 
 export const commonProtectedRoutes: RouteConfig = {
   exact: ["/profile", "/settings"],
@@ -69,14 +69,27 @@ export const isValidRedirectForRole = (
   return routeOwner === role;
 };
 
+export interface IDecodedToken {
+  id: string;
+  email: string;
+  role: UserRole;
+  needsPasswordChange?: boolean;
+}
+
 /**
- * Universal zero-dependency JWT/Token decoder compatible with Node, Edge, and Browser runtimes.
+ * Universal zero-dependency JWT decoder compatible with Node, Edge, and Browser runtimes.
  */
-export const extractUserRoleFromToken = (token: string): UserRole | null => {
+export const decodeAuthToken = (token: string): IDecodedToken | null => {
   if (!token) return null;
-  if (token === "mock_admin_token") return "ADMIN";
-  if (token === "mock_mentor_token") return "MENTOR";
-  if (token === "mock_student_token") return "STUDENT";
+  if (token === "mock_admin_token") {
+    return { id: "admin_1", email: "admin@gmail.com", role: "ADMIN", needsPasswordChange: false };
+  }
+  if (token === "mock_mentor_token") {
+    return { id: "mentor_1", email: "mentor@gmail.com", role: "MENTOR", needsPasswordChange: false };
+  }
+  if (token === "mock_student_token") {
+    return { id: "student_1", email: "student@gmail.com", role: "STUDENT", needsPasswordChange: false };
+  }
 
   try {
     const parts = token.split(".");
@@ -102,7 +115,12 @@ export const extractUserRoleFromToken = (token: string): UserRole | null => {
       }
       const role = decoded.role as UserRole;
       if (role === "ADMIN" || role === "MENTOR" || role === "STUDENT") {
-        return role;
+        return {
+          id: decoded.id,
+          email: decoded.email,
+          role,
+          needsPasswordChange: Boolean(decoded.needsPasswordChange),
+        };
       }
     }
   } catch {
@@ -112,3 +130,6 @@ export const extractUserRoleFromToken = (token: string): UserRole | null => {
   return null;
 };
 
+export const extractUserRoleFromToken = (token: string): UserRole | null => {
+  return decodeAuthToken(token)?.role || null;
+};

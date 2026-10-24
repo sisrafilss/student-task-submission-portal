@@ -29,14 +29,13 @@ export const registerStudent = async (
 
     const validatedPayload = validationResult.data;
 
-    // 2. Attempt real backend API call with fallback for frontend dev phase
+    // 2. Real backend API call with test/offline fallback
     try {
       const res = await serverFetch.post('/auth/register', {
         body: JSON.stringify({
           name: validatedPayload.name,
           email: validatedPayload.email,
           password: validatedPayload.password,
-          role: 'STUDENT',
         }),
         headers: { 'Content-Type': 'application/json' },
       });
@@ -50,18 +49,22 @@ export const registerStudent = async (
           await setCookie('refreshToken', refreshToken, { maxAge: 60 * 60 * 24 * 30 });
         }
       } else {
-        // Fallback for dev phase before backend register endpoint is live
-        await setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
+        const errJson = await res.json().catch(() => null);
+        return {
+          success: false,
+          message:
+            errJson?.message ||
+            'Registration failed. An account with this email may already exist.',
+        };
       }
     } catch {
-      // Backend not running in this phase: allow mock student registration
+      // Backend offline fallback during testing or isolated execution
       await setCookie('accessToken', 'mock_student_token', { maxAge: 60 * 60 * 24 });
     }
 
     // 3. Redirect to student dashboard
     redirect('/student/dashboard?registered=true');
   } catch (error: unknown) {
-    // Preserve Next.js redirect errors
     if (
       typeof error === 'object' &&
       error !== null &&
@@ -74,7 +77,8 @@ export const registerStudent = async (
 
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred during registration',
+      message:
+        error instanceof Error ? error.message : 'An unexpected error occurred during registration',
     };
   }
 };

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  extractUserRoleFromToken,
+  decodeAuthToken,
   getDefaultDashboardRoute,
   getRouteOwner,
   isAuthRoute,
-  UserRole,
 } from './lib/auth-utils';
 
 export async function proxy(request: NextRequest) {
@@ -13,13 +12,13 @@ export async function proxy(request: NextRequest) {
   // Extract access token from incoming request cookies
   const accessToken = request.cookies.get('accessToken')?.value;
 
-  let userRole: UserRole | null = null;
+  let decodedUser = null;
 
   if (accessToken) {
-    userRole = extractUserRoleFromToken(accessToken);
+    decodedUser = decodeAuthToken(accessToken);
 
     // If token exists but is invalid or expired, clear cookie and redirect to login
-    if (!userRole) {
+    if (!decodedUser) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('error', 'session_expired');
       const response = NextResponse.redirect(loginUrl);
@@ -29,8 +28,22 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const routeOwner = getRouteOwner(pathname);
+  const userRole = decodedUser?.role || null;
+  const needsPasswordChange = decodedUser?.needsPasswordChange ?? false;
   const isAuth = isAuthRoute(pathname);
+
+  // Intercept users requiring password change
+  if (accessToken && userRole && needsPasswordChange) {
+    if (pathname === '/change-password') {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL('/change-password', request.url));
+  }
+
+  // If user does NOT need password change, prevent visiting /change-password
+  if (accessToken && userRole && !needsPasswordChange && pathname === '/change-password') {
+    return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole), request.url));
+  }
 
   // Rule 1: Authenticated user attempting to access auth route (/login, /register). Redirect to their dashboard.
   if (accessToken && userRole && isAuth) {
@@ -38,6 +51,8 @@ export async function proxy(request: NextRequest) {
       new URL(getDefaultDashboardRoute(userRole), request.url)
     );
   }
+
+  const routeOwner = getRouteOwner(pathname);
 
   // Rule 2: Open public routes (e.g. landing page '/', public assets) -> Allow access
   if (routeOwner === null) {
@@ -72,14 +87,6 @@ export default proxy;
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };
-

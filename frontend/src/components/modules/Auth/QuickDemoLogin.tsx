@@ -35,7 +35,7 @@ export default function QuickDemoLogin({
           variant="outline"
           size="sm"
           disabled={disabled}
-          onClick={() => onSelectDemo('student@portal.test', 'Password123!')}
+          onClick={() => onSelectDemo('student@gmail.com', '123456')}
           className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
         >
           🎓 <span className="ml-1 truncate">Student Demo</span>
@@ -46,7 +46,7 @@ export default function QuickDemoLogin({
           variant="outline"
           size="sm"
           disabled={disabled}
-          onClick={() => onSelectDemo('mentor@portal.test', 'Password123!')}
+          onClick={() => onSelectDemo('mentor@gmail.com', '123456')}
           className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
         >
           👨‍🏫 <span className="ml-1 truncate">Mentor Demo</span>
@@ -57,13 +57,23 @@ export default function QuickDemoLogin({
           variant="outline"
           size="sm"
           disabled={disabled}
-          onClick={() => onSelectDemo('admin@portal.test', 'Password123!')}
+          onClick={() => onSelectDemo('admin@gmail.com', '123456')}
           className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
         >
           🛡️ <span className="ml-1 truncate">Admin Demo</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={() => onSelectDemo('newmentor@gmail.com', '123456')}
+          className="h-8 justify-start border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400 hover:border-amber-500/50 hover:bg-amber-500/20 transition-all cursor-pointer col-span-full sm:col-span-3"
+        >
+          ⏳ <span className="ml-1 truncate">First-Time Mentor (Needs Password Change)</span>
         </Button>
       </div>
     </div>
   );
 }
-
