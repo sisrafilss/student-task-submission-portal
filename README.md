@@ -4,9 +4,10 @@ A modern, scalable full-stack web application designed for managing student assi
 
 ---
 
-## 🌐 Live Deployment
+## 🌐 Live Deployment & Overview Video
 
 - **Live Application:** [https://student-submission-portal-frontend.vercel.app/login](https://student-submission-portal-frontend.vercel.app/login)
+- **Project Overview Video:** [https://youtu.be/9xjWa3KY4xQ](https://youtu.be/9xjWa3KY4xQ)
 - **Deployment Platform:** Vercel (Next.js App Router Frontend + Serverless Express REST API)
 
 ### 🔑 Demo Login Credentials
