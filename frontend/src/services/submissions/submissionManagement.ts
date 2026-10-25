@@ -196,6 +196,7 @@ export const submitProject = async (
     const backendRes = await serverFetch.post('/submissions', {
       body: JSON.stringify({
         assignmentId: payload.assignmentId,
+        projectName: payload.projectName,
         repoUrl: payload.repoUrl,
         liveUrl: payload.liveUrl || undefined,
         notes: payload.remarks || payload.description || undefined,
@@ -225,15 +226,6 @@ export const submitProject = async (
   }
 
   // 2. Local fallback for unit test harness
-  const lastSubmission = rateLimitStore.get(studentId) || 0;
-  if (now - lastSubmission < COOLDOWN_WINDOW_MS) {
-    const remainingSec = Math.ceil((COOLDOWN_WINDOW_MS - (now - lastSubmission)) / 1000);
-    return {
-      success: false,
-      message: `Rate limit active: Please wait ${remainingSec} seconds before submitting another project.`,
-    };
-  }
-
   const isDuplicate = submissionsStore.some(
     (s) => s.studentId === studentId && s.assignmentId === payload.assignmentId
   );
@@ -241,6 +233,15 @@ export const submitProject = async (
     return {
       success: false,
       message: 'Duplicate submission detected: You have already submitted a project for this assignment.',
+    };
+  }
+
+  const lastSubmission = rateLimitStore.get(studentId) || 0;
+  if (now - lastSubmission < COOLDOWN_WINDOW_MS) {
+    const remainingSec = Math.ceil((COOLDOWN_WINDOW_MS - (now - lastSubmission)) / 1000);
+    return {
+      success: false,
+      message: `Rate limit active: Please wait ${remainingSec} seconds before submitting another project.`,
     };
   }
 

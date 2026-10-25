@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { submitProject } from '@/services/submissions/submissionManagement';
 import { IAssignment } from '@/types/submission.interface';
-import { GitBranch, Globe, Loader2, Send } from 'lucide-react';
+import { FileText, GitBranch, Globe, Loader2, Send } from 'lucide-react';
 import React, { useActionState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -64,9 +64,24 @@ export default function StudentSubmissionDialog({
         <ScrollArea className="max-h-[calc(80vh-130px)] px-6 py-4" orientation="vertical">
           <form ref={formRef} action={formAction} noValidate className="space-y-4">
             <input type="hidden" name="assignmentId" value={assignment.id} />
-            <input type="hidden" name="projectName" value={assignment.title} />
-
             <FieldGroup className="space-y-3.5">
+              {/* Project Name */}
+              <Field>
+                <FieldLabel htmlFor="projectName" className="text-xs font-semibold flex items-center gap-1.5">
+                  <FileText className="size-3.5 text-primary" />
+                  Project Name *
+                </FieldLabel>
+                <Input
+                  id="projectName"
+                  name="projectName"
+                  defaultValue={assignment.title}
+                  placeholder="e.g. NextraCRM Project Portal"
+                  className="h-9 text-xs"
+                  required
+                />
+                <InputFieldError field="projectName" state={state} />
+              </Field>
+
               {/* GitHub Repository URL */}
               <Field>
                 <FieldLabel htmlFor="repoUrl" className="text-xs font-semibold flex items-center gap-1.5">

@@ -8,6 +8,7 @@ export const createSubmissionZodSchema = z.object({
         required_error: 'assignmentId is required',
       })
       .uuid('Invalid assignmentId format'),
+    projectName: z.string().max(100, 'Project name cannot exceed 100 characters').optional(),
     repoUrl: z
       .string({
         required_error: 'repoUrl is required',

@@ -40,6 +40,12 @@ export const studentNavItems: NavSection[] = [
         roles: ['STUDENT'],
       },
       {
+        title: 'Submit Project',
+        href: '/student/submit',
+        icon: 'FolderUp',
+        roles: ['STUDENT'],
+      },
+      {
         title: 'My Submissions',
         href: '/student/submissions',
         icon: 'FileCheck',

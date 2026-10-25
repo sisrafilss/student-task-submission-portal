@@ -13,12 +13,54 @@ import {
   IStudentSubmissionStats,
 } from './submission.interface';
 
+const submissionRateLimitStore = new Map<string, number>();
+const SUBMISSION_COOLDOWN_MS = 60 * 1000;
+
+export const resetSubmissionRateLimitStoreForTesting = () => {
+  submissionRateLimitStore.clear();
+};
+
 const submitAssignment = async (
-  payload: Omit<IAssignMentorPayload, 'studentId'>,
+  payload: Omit<IAssignMentorPayload, 'studentId'> & { projectName?: string },
   studentId: string
 ) => {
+  // 1. Check duplicate submission first to return 409 Conflict if already submitted
+  const existingSubmission = await prisma.submission.findUnique({
+    where: {
+      assignmentId_studentId: {
+        assignmentId: payload.assignmentId,
+        studentId,
+      },
+    },
+  });
+
+  if (existingSubmission) {
+    throw new ApiError(
+      httpStatus.CONFLICT,
+      'You have already submitted this assignment'
+    );
+  }
+
+  // 2. Check rate limit to prevent spamming
+  const now = Date.now();
+  const lastSubmission = submissionRateLimitStore.get(studentId) || 0;
+  if (now - lastSubmission < SUBMISSION_COOLDOWN_MS) {
+    const remainingSec = Math.ceil((SUBMISSION_COOLDOWN_MS - (now - lastSubmission)) / 1000);
+    throw new ApiError(
+      httpStatus.TOO_MANY_REQUESTS,
+      `Rate limit active: Please wait ${remainingSec} seconds before submitting another project.`
+    );
+  }
+
+  submissionRateLimitStore.set(studentId, now);
+
+  const formattedNotes = payload.projectName
+    ? `[Project: ${payload.projectName}] ${payload.notes || ''}`.trim()
+    : payload.notes;
+
   return await assignMentorAtomic({
     ...payload,
+    notes: formattedNotes,
     studentId,
   });
 };
