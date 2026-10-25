@@ -1,6 +1,23 @@
 # Student Task & Submission Portal
 
-A modern, scalable full-stack web application designed for managing student assignments, task submissions, and automated evaluation workflows.
+A modern, scalable full-stack web application designed for managing student assignments, task submissions, automated mentor distribution, and comprehensive grading evaluation workflows.
+
+---
+
+## 🌐 Live Deployment
+
+- **Live Application:** [https://student-submission-portal-frontend.vercel.app/login](https://student-submission-portal-frontend.vercel.app/login)
+- **Deployment Platform:** Vercel (Next.js App Router Frontend + Serverless Express REST API)
+
+### 🔑 Demo Login Credentials
+
+For quick live testing, one-click demo login buttons are available on the login page:
+
+| Role | Email | Password | Primary Permissions |
+|---|---|---|---|
+| **Super Admin** | `admin@gmail.com` | `123456` | Platform metrics, user management (students/mentors), batches, assignments, and analytics. |
+| **Active Mentor** | `mentor@gmail.com` | `123456` | Review assigned submissions, dynamic rubric grading, feedback, batch overview. |
+| **Student (Batch 01)** | `student@gmail.com` | `123456` | View batch assignments, standalone & modal submission portals, track marks & feedback. |
 
 ---
 
@@ -110,7 +127,7 @@ Synchronize your database schema and seed initial sample data:
 # Push schema to PostgreSQL
 pnpm --filter backend exec prisma db push
 
-# Seed initial admin and student records
+# Seed initial admin, mentor, and student records
 pnpm --filter backend seed
 ```
 
@@ -141,44 +158,171 @@ pnpm build
 
 ## ✨ Features & Modules
 
-### Monorepo Architecture (`main`)
+### 1. Student Standalone Submission Portal & Robust Forms (`main`)
 
-- **Unified Monorepo Orchestration**:
-  - Turborepo configuration (`turbo.json`) enabling fast, parallel builds and development workflows.
-  - Independent dependency scopes managed via `pnpm-workspace.yaml`.
-
-- **Modular Express 5 & Prisma 7 Backend**:
-  - **Prisma 7 Driver Adapter Architecture**: Modernized database integration utilizing `@prisma/adapter-pg` and centralized `prisma.config.ts`.
-  - **Connection Pooling**: Configured runtime connection (`DATABASE_URL`) alongside direct migration connection (`DATABASE_URL_UNPOOLED`).
-  - **Feature-Isolated Modules**: Layered Controller-Service-Route-Validation architecture.
-  - **Centralized Error Handling**: Uniform response structure managed through `catchAsync`, `ApiError`, and `globalErrorHandler`.
-  - **Serverless Ready**: Dual-mode entry with `server.ts` for local node processes and `serverless.ts` bundled with `esbuild` for Vercel deployment.
-
-- **Next.js 16 App Router Frontend**:
-  - Built with React 19, TypeScript, and modern Tailwind CSS.
-  - Standardized component library powered by `shadcn/ui`.
-  - Abstracted data access layer utilizing `serverFetch` (`src/lib/server-fetch.ts`) with strict Zod schema validation.
-  - Fully responsive layout across all device viewports (Desktop, Tablet, Mobile) with adaptive touch-friendly interfaces.
+- **Standalone Portal Route (`/student/submit`)**:
+  - Dedicated submission page in Next.js App Router with Suspense boundary and preselection query parameter (`?assignmentId=...`).
+  - Student sidebar navigation includes direct one-click link to "Submit Project" (`FolderUp` icon).
+- **Visible & Mandatory `Project Name` Field**:
+  - Both the standalone form (`StudentStandaloneSubmissionForm`) and modal dialog (`StudentSubmissionDialog`) feature a visible `Project Name *` input field.
+  - Complete form fields: **Project Name**, **Git Repository URL**, **Live Deployment URL**, and **Project Description**.
+- **Duplicate Submission Prevention Guard**:
+  - Real-time client-side detection: selecting an already submitted assignment triggers a warning banner (`SubmissionEligibilityAlert`) and immediately disables the submit button.
+  - Backend enforcement: queries database unique constraint (`assignmentId_studentId`) and returns `409 Conflict`.
+- **Spam Rate-Limiting Protection**:
+  - In-memory rate limiting cooldown window (60 seconds) prevents rapid submissions.
+  - Interactive countdown badge (`SubmissionRateLimitBadge`) informs the student of remaining cooldown seconds.
+  - Backend service throws `429 Too Many Requests` if submissions occur within the cooldown window.
+- **Backend APIs**:
+  - `POST /api/v1/submissions`: Submit deliverables with `assignmentId`, `projectName`, `repoUrl`, `liveUrl`, and `notes`.
+  - `GET /api/v1/submissions/my-submissions`: Retrieve student's submission history with pagination and status filters.
 
 ---
 
-## 📡 API Endpoints
+### 2. Real Database Dynamic Dashboards (`main`)
 
-### Health Check
+- **Student Dashboard (`/student/dashboard`)**:
+  - Fetches live database counts for active batch assignments, submitted projects, and cumulative average evaluation score.
+  - Quick action links to assignments hub, submission history, and grades.
+- **Mentor Dashboard (`/mentor/dashboard`)**:
+  - Displays pending assigned submissions queue count, evaluated count for the current week, and active assigned batches.
+- **Admin Dashboard (`/admin/dashboard`)**:
+  - System-wide metric cards displaying total enrolled students, active teaching mentors, active assignment tracks, and lifetime platform submissions.
+- **Backend APIs**:
+  - `GET /api/v1/dashboard/student`: Aggregated metrics for the authenticated student.
+  - `GET /api/v1/dashboard/mentor`: Evaluation metrics for the authenticated mentor.
+  - `GET /api/v1/dashboard/admin`: System-wide counts and platform health statistics.
 
+---
+
+### 3. Fair Task Distribution & Round-Robin Engine (`main`)
+
+- **Automated Mentor Allocation**:
+  - When a student submits an assignment, the distribution engine calculates active mentor quotas and automatically assigns the submission using atomic database operations.
+  - Prevents mentor over-allocation and maintains balanced grading queues across the teaching staff.
+- **Dynamic Quota Adjustment**:
+  - Admins can configure custom per-mentor capacity (`maxPerMentor`) and reassign quotas per assignment track.
+
+---
+
+### 4. Interactive Assignment & Batch Management (`main`)
+
+- **Batch Management (`/admin/batches`)**:
+  - Manage course tracks, batch codes, start/end schedules, and student enrollments.
+- **Assignment Builder (`/admin/assignments`)**:
+  - Create, edit, and delete assignments with deadlines, total marks, and dynamic grading rubrics.
+  - Cascade deletion protection: safely cleans up associated submissions and mentor allocations.
+- **Backend APIs**:
+  - `POST /api/v1/assignments`: Create assignment with rubrics and mentor quotas.
+  - `GET /api/v1/assignments`: List assignments with search and batch filtering.
+  - `PATCH /api/v1/assignments/:id`: Update assignment details and rubrics.
+  - `DELETE /api/v1/assignments/:id`: Remove assignment and cascade clean associations.
+
+---
+
+### 5. Mentor Evaluation Hub & Dynamic Rubrics (`main`)
+
+- **Submissions Queue (`/mentor/submissions`)**:
+  - Filter submissions by status (`PENDING`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`).
+  - View student repository links, live demos, and notes.
+- **Dynamic Rubric Scoring**:
+  - Evaluators grade each rubric criterion individually; the system automatically calculates total marks and syncs with database records.
+  - Requires constructive feedback and mandatory rejection justification for non-passing submissions.
+
+---
+
+### 6. User Management & Cloudinary Profile (`main`)
+
+- **Role-Based Access Control (RBAC)**:
+  - Multi-tier authorization supporting `ADMIN`, `INSTRUCTOR`, `MENTOR`, and `STUDENT` roles.
+  - Route guards and middleware protection on both frontend (`proxyRouting`) and backend (`auth` middleware).
+- **Cloudinary Avatar Upload (`/settings`)**:
+  - Real-time profile photo upload to Cloudinary with automatic deletion of legacy assets to optimize storage.
+  - Instant avatar synchronization across top navigation bar, dropdown menu, and sidebar profile cards.
+
+---
+
+## 📡 API Endpoints Overview
+
+| Module | Method | Endpoint | Access Role | Description |
+|---|---|---|---|---|
+| **Health** | `GET` | `/api/v1/health` | Public | System status and uptime. |
+| **Auth** | `POST` | `/api/v1/auth/login` | Public | Authenticate user and issue JWT tokens. |
+| **Auth** | `POST` | `/api/v1/auth/refresh-token` | Public | Refresh expired access tokens. |
+| **Auth** | `POST` | `/api/v1/auth/change-password` | Authenticated | Change user password and update activation state. |
+| **Dashboard** | `GET` | `/api/v1/dashboard/student` | `STUDENT` | Student personalized dashboard metrics. |
+| **Dashboard** | `GET` | `/api/v1/dashboard/mentor` | `MENTOR` | Mentor evaluation queue metrics. |
+| **Dashboard** | `GET` | `/api/v1/dashboard/admin` | `ADMIN` | Platform administrative overview metrics. |
+| **Assignments**| `GET` | `/api/v1/assignments` | `ADMIN`, `MENTOR` | Filterable assignment list. |
+| **Assignments**| `GET` | `/api/v1/assignments/my-batch`| `STUDENT` | Assignments belonging to student's batch. |
+| **Assignments**| `POST`| `/api/v1/assignments` | `ADMIN` | Create assignment with rubrics & quotas. |
+| **Assignments**| `PATCH`| `/api/v1/assignments/:id` | `ADMIN` | Update assignment details. |
+| **Assignments**| `DELETE`| `/api/v1/assignments/:id`| `ADMIN` | Cascade delete assignment. |
+| **Submissions**| `POST`| `/api/v1/submissions` | `STUDENT` | Submit project deliverables (Rate-limited). |
+| **Submissions**| `GET` | `/api/v1/submissions/my-submissions` | `STUDENT` | Student submission history. |
+| **Submissions**| `GET` | `/api/v1/submissions/mentor-queue` | `MENTOR` | Assigned submissions for mentor grading. |
+| **Submissions**| `POST`| `/api/v1/submissions/:id/evaluate` | `MENTOR` | Grade submission with rubric breakdown. |
+| **Batches** | `GET` | `/api/v1/batches` | `ADMIN`, `MENTOR` | List all academic batches. |
+| **Batches** | `POST`| `/api/v1/batches` | `ADMIN` | Create new batch. |
+| **Users** | `GET` | `/api/v1/users/students` | `ADMIN` | Manage student accounts. |
+| **Users** | `GET` | `/api/v1/users/mentors` | `ADMIN` | Manage mentor accounts. |
+
+---
+
+## 🔍 How to Verify the Features
+
+### 1. Verify via Browser
+
+1. Open the application at [http://localhost:3002](http://localhost:3002) (or the [Live Demo](https://student-submission-portal-frontend.vercel.app/login)).
+2. **Student Submission Flow**:
+   - Log in using **Student Demo**.
+   - Notice the **"Submit Project"** item in the sidebar navigation (`/student/submit`).
+   - Click the link to open the Standalone Submission Portal.
+   - Enter your **Project Name**, **GitHub URL**, **Live Link**, and **Description**.
+   - Submit the project and observe the 60-second cooldown timer. Attempting to submit again immediately will display the cooldown badge.
+   - Select an already submitted assignment from the dropdown and observe the **"Already Submitted"** warning with the button disabled.
+3. **Mentor Evaluation Flow**:
+   - Log in using **Mentor Demo**.
+   - Navigate to **Submissions Queue** (`/mentor/submissions`).
+   - Click on an assigned pending submission to open the Evaluation Dialog.
+   - Input rubric scores and constructive feedback, then click **Approve** or **Reject**.
+4. **Admin Dashboard & System Flow**:
+   - Log in using **Admin Demo**.
+   - Review live metric cards on `/admin/dashboard`.
+   - Navigate to **Assignments** (`/admin/assignments`) to create or inspect batch assignments.
+
+---
+
+### 2. Verify Backend APIs via curl
+
+#### Step 1: Obtain Access Token
 ```bash
-# Verify API operational status
-curl -i http://localhost:5002/api/v1/health
+ADMIN_TOKEN=$(curl -s http://localhost:5002/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@gmail.com","password":"123456"}' | jq -r '.data.accessToken')
 ```
 
-*Response:*
-```json
-{
-  "success": true,
-  "message": "Student Submission Portal Backend API is healthy and operational!",
-  "data": {
-    "uptime": 14.03,
-    "environment": "development"
-  }
-}
+#### Step 2: Fetch System Dashboard Metrics
+```bash
+curl -s http://localhost:5002/api/v1/dashboard/admin \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq .
+```
+
+#### Step 3: Create Assignment with Rubrics
+```bash
+curl -s -X POST http://localhost:5002/api/v1/assignments \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "title": "Assignment 03 - Full Stack Store",
+    "description": "Build an e-commerce platform with Next.js and Prisma.",
+    "batchId": "e70cc949-4119-4aca-be63-97396aea664a",
+    "deadline": "2026-11-20T23:59:59.000Z",
+    "totalMarks": 60,
+    "maxPerMentor": 10,
+    "rubrics": [
+      { "criterion": "Responsive UI", "maxMarks": 30 },
+      { "criterion": "Authentication & Database", "maxMarks": 30 }
+    ]
+  }' | jq .
 ```
