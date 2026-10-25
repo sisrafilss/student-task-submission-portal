@@ -1,14 +1,7 @@
-import Link from 'next/link';
+import { Suspense } from 'react';
+import DashboardStatsSkeleton from '@/components/modules/Dashboard/DashboardStatsSkeleton';
+import MentorDashboardContainer from '@/components/modules/Mentor/MentorDashboardContainer';
 import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 export default function MentorDashboardPage() {
@@ -28,65 +21,9 @@ export default function MentorDashboardPage() {
 
       <Separator />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Submissions</CardTitle>
-            <CardDescription>Submissions waiting for evaluation</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-amber-500">14</div>
-            <p className="text-xs text-muted-foreground mt-1">5 urgent submissions</p>
-          </CardContent>
-          <CardFooter>
-            <Link
-              href="/mentor/submissions"
-              className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-full' })}
-            >
-              Start Evaluating
-            </Link>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Evaluated This Week</CardTitle>
-            <CardDescription>Submissions evaluated by you</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">32</div>
-            <p className="text-xs text-muted-foreground mt-1">Average response time: 2.4 hours</p>
-          </CardContent>
-          <CardFooter>
-            <Link
-              href="/mentor/history"
-              className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-full' })}
-            >
-              Evaluation History
-            </Link>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Batches</CardTitle>
-            <CardDescription>Assigned student batches</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">2</div>
-            <p className="text-xs text-muted-foreground mt-1">Batch 12 & Batch 13</p>
-          </CardContent>
-          <CardFooter>
-            <Link
-              href="/mentor/batches"
-              className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-full' })}
-            >
-              View Batches
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
+      <Suspense fallback={<DashboardStatsSkeleton cardsCount={3} />}>
+        <MentorDashboardContainer />
+      </Suspense>
     </div>
   );
 }
-
