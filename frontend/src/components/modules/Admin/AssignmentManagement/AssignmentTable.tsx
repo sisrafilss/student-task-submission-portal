@@ -67,7 +67,7 @@ export default function AssignmentTable({
   };
 
   const deleteWarningMessage = deletingAssignment
-    ? `⚠️ সতর্কতা: এই পদক্ষেপটি অপরিবর্তনীয়! "${deletingAssignment.title}" অ্যাসাইনমেন্টটি ডিলিট করলে এর সাথে যুক্ত সকল স্টুডেন্ট সাবমিশন, প্রাপ্ত মার্কস, রিভিউ ও মেন্টর কোটা স্বয়ংক্রিয়ভাবে ডাটাবেজ থেকে স্থায়ীভাবে মুছে যাবে। আপনি কি নিশ্চিত?`
+    ? `⚠️ Warning: This action is irreversible! Deleting assignment "${deletingAssignment.title}" will permanently remove all associated student submissions, awarded marks, reviews, and mentor quota allocations from the database. Are you sure you want to proceed?`
     : undefined;
 
   return (

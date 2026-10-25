@@ -1,11 +1,12 @@
-import ProjectSubmissionForm from '@/components/modules/Student/Submission/ProjectSubmissionForm';
 import StudentSubmissionsContainer from '@/components/modules/Student/Submission/StudentSubmissionsContainer';
 import SubmissionPortalHeader from '@/components/modules/Student/Submission/SubmissionPortalHeader';
 import RefreshButton from '@/components/shared/RefreshButton';
 import SearchFilter from '@/components/shared/SearchFilter';
 import SelectFilter from '@/components/shared/SelectFilter';
 import TableSkeleton from '@/components/shared/TableSkeleton';
-import { getAvailableAssignments, getStudentSubmissions } from '@/services/submissions/submissionManagement';
+import {
+  getStudentSubmissionStats,
+} from '@/services/submissions/submissionManagement';
 import { Suspense } from 'react';
 
 interface StudentSubmissionsPageProps {
@@ -15,22 +16,18 @@ interface StudentSubmissionsPageProps {
 export default async function StudentSubmissionsPage({
   searchParams,
 }: StudentSubmissionsPageProps) {
-  // Fetch initial student submissions & assignments for header stats and duplicate detection
-  const [submissionsResponse, assignmentsResponse] = await Promise.all([
-    getStudentSubmissions('', 'std-1'),
-    getAvailableAssignments(),
-  ]);
+  // Fetch live student submission stats
+  const stats = await getStudentSubmissionStats();
 
-  const allSubmissions = submissionsResponse.data;
-  const totalCount = allSubmissions.length;
-  const pendingCount = allSubmissions.filter((s) => s.status === 'PENDING' || s.status === 'UNDER_REVIEW').length;
-  const evaluatedCount = allSubmissions.filter((s) => s.status === 'EVALUATED').length;
+  const totalCount = stats.totalSubmissions;
+  const pendingCount = stats.totalPending;
+  const evaluatedCount = stats.totalEvaluated;
 
   const statusOptions = [
     { label: 'Pending', value: 'PENDING' },
     { label: 'Under Review', value: 'UNDER_REVIEW' },
-    { label: 'Evaluated', value: 'EVALUATED' },
-    { label: 'Resubmission Required', value: 'RESUBMISSION_REQUIRED' },
+    { label: 'Approved', value: 'APPROVED' },
+    { label: 'Rejected', value: 'REJECTED' },
   ];
 
   return (
@@ -40,12 +37,6 @@ export default async function StudentSubmissionsPage({
         totalCount={totalCount}
         pendingCount={pendingCount}
         evaluatedCount={evaluatedCount}
-      />
-
-      {/* Main Project Submission Form Card */}
-      <ProjectSubmissionForm
-        existingSubmissions={allSubmissions}
-        assignments={assignmentsResponse.data}
       />
 
       {/* Submission History Section */}

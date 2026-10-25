@@ -56,9 +56,13 @@ export interface ISubmission {
   status: SubmissionStatus;
   score?: number | null;
   maxScore?: number;
+  rubrics?: IRubricItem[];
   feedback?: string | null;
   rejectionReason?: string | null;
   rubricScores?: IRubricScoreItem[];
+  mentorId?: string | null;
+  mentorName?: string | null;
+  mentorEmail?: string | null;
   evaluatedBy?: string | null;
   evaluatedAt?: string | null;
   createdAt: string | Date;
@@ -71,6 +75,12 @@ export interface IMentorSubmissionStats {
   totalApproved: number;
   totalRejected: number;
   averageScore: number;
+}
+
+export interface IStudentSubmissionStats {
+  totalSubmissions: number;
+  totalPending: number;
+  totalEvaluated: number;
 }
 
 export interface ISubmissionFilterOptions {

@@ -21,3 +21,15 @@ export interface ISubmissionFilterRequest {
   batchId?: string;
 }
 
+export interface IStudentSubmissionFilterRequest {
+  searchTerm?: string;
+  status?: string;
+  assignmentId?: string;
+}
+
+export interface IStudentSubmissionStats {
+  totalSubmissions: number;
+  totalPending: number;
+  totalEvaluated: number;
+}
+

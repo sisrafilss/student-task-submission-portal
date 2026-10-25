@@ -1,6 +1,6 @@
 import TablePagination from '@/components/shared/TablePagination';
 import { queryStringFormatter } from '@/lib/formatters';
-import { getMentorSubmissions } from '@/services/submissions/submissionManagement';
+import { getMentorSubmissions } from '@/services/submissions/mentorSubmissionManagement';
 import MentorSubmissionsTable from './MentorSubmissionsTable';
 
 interface MentorSubmissionsContainerProps {

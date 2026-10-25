@@ -13,7 +13,7 @@ export default async function StudentSubmissionsContainer({
   const searchParamsObj = await searchParams;
   const queryString = queryStringFormatter(searchParamsObj);
 
-  const submissionsResult = await getStudentSubmissions(queryString, 'std-1');
+  const submissionsResult = await getStudentSubmissions(queryString);
 
   return (
     <div className="space-y-4">

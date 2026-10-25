@@ -24,6 +24,12 @@ router.get(
 );
 
 router.get(
+  '/student-stats',
+  auth('STUDENT'),
+  SubmissionController.getStudentStats
+);
+
+router.get(
   '/assigned',
   auth('MENTOR'),
   validateRequest(submissionQueryZodSchema),

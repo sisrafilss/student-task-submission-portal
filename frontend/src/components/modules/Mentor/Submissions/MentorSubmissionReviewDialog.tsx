@@ -13,7 +13,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { reviewSubmission } from '@/services/submissions/submissionManagement';
+import { reviewSubmission } from '@/services/submissions/mentorSubmissionManagement';
 import { IRubricScoreItem, ISubmission } from '@/types/submission.interface';
 import {
   AlertTriangle,
@@ -52,7 +52,12 @@ export default function MentorSubmissionReviewDialog({
   const [actionType, setActionType] = useState<'APPROVE' | 'REJECT'>(
     submission?.status === 'REJECTED' ? 'REJECT' : 'APPROVE'
   );
-  const [score, setScore] = useState<number>(submission?.score ?? 85);
+  const defaultTotalMarks =
+    submission?.rubrics && submission.rubrics.length > 0
+      ? submission.rubrics.reduce((sum, r) => sum + r.marks, 0)
+      : submission?.maxScore || 100;
+
+  const [score, setScore] = useState<number>(submission?.score ?? defaultTotalMarks);
   const [rubricScores, setRubricScores] = useState<IRubricScoreItem[]>(submission?.rubricScores || []);
   const [rejectionReason, setRejectionReason] = useState<string>(submission?.rejectionReason || '');
   const [feedback, setFeedback] = useState<string>(submission?.feedback || '');
@@ -61,7 +66,7 @@ export default function MentorSubmissionReviewDialog({
   if (submission && submission.id !== prevSubmissionId) {
     setPrevSubmissionId(submission.id);
     setActionType(submission.status === 'REJECTED' ? 'REJECT' : 'APPROVE');
-    setScore(submission.score ?? 85);
+    setScore(submission.score ?? defaultTotalMarks);
     setRubricScores(submission.rubricScores || []);
     setRejectionReason(submission.rejectionReason || '');
     setFeedback(submission.feedback || '');
@@ -79,10 +84,13 @@ export default function MentorSubmissionReviewDialog({
 
   if (!submission) return null;
 
-  const handleRubricScoreChange = (total: number, items: IRubricScoreItem[]) => {
-    setRubricScores(items);
-    setScore(total);
-  };
+  const handleRubricScoreChange = React.useCallback(
+    (total: number, items: IRubricScoreItem[]) => {
+      setRubricScores(items);
+      setScore(total);
+    },
+    []
+  );
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -172,6 +180,8 @@ export default function MentorSubmissionReviewDialog({
                     </Field>
 
                     <MentorRubricScoringSection
+                      key={submission.id}
+                      rubrics={submission.rubrics}
                       initialScores={rubricScores}
                       onScoreChange={handleRubricScoreChange}
                     />

@@ -30,12 +30,14 @@ interface AssignmentDetailDialogProps {
   assignment: IAssignment | null;
   open: boolean;
   onClose: () => void;
+  onSubmit?: (assignment: IAssignment) => void;
 }
 
 export default function AssignmentDetailDialog({
   assignment,
   open,
   onClose,
+  onSubmit,
 }: AssignmentDetailDialogProps) {
   if (!assignment) return null;
 
@@ -233,13 +235,18 @@ export default function AssignmentDetailDialog({
                 View Submission Status
               </Link>
             ) : (
-              <Link
-                href={`/student/submissions?assignmentId=${assignment.id}`}
-                className={buttonVariants({ variant: 'default', size: 'sm', className: 'h-9 px-4 text-xs font-medium gap-1.5' })}
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  onSubmit?.(assignment);
+                }}
+                className="h-9 px-4 text-xs font-medium gap-1.5"
               >
                 <Send className="size-3.5" />
                 Submit Assignment
-              </Link>
+              </Button>
             )}
           </div>
         </DialogFooter>

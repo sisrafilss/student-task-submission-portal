@@ -20,9 +20,9 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useSubmissionCooldown } from '@/hooks/useSubmissionCooldown';
-import { mockAssignments } from '@/services/submissions/mockSubmissions';
 import { submitProject } from '@/services/submissions/submissionManagement';
 import { IAssignment, ISubmission } from '@/types/submission.interface';
+import { useRouter } from 'next/navigation';
 import {
   Calendar,
   GitBranch,
@@ -44,18 +44,28 @@ interface ProjectSubmissionFormProps {
 
 export default function ProjectSubmissionForm({
   existingSubmissions = [],
-  assignments = mockAssignments,
+  assignments = [],
   onSuccess,
 }: ProjectSubmissionFormProps) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(
-    assignments[0]?.id || 'assign-1'
+    assignments[0]?.id || ''
   );
   const [charCount, setCharCount] = useState(0);
 
   const { isCoolingDown, remainingSeconds, startCooldown } = useSubmissionCooldown();
 
   const [state, formAction, isPending] = useActionState(submitProject, null);
+
+  useEffect(() => {
+    if (
+      assignments.length > 0 &&
+      (!selectedAssignmentId || !assignments.some((a) => a.id === selectedAssignmentId))
+    ) {
+      setSelectedAssignmentId(assignments[0].id);
+    }
+  }, [assignments, selectedAssignmentId]);
 
   // Check if currently selected assignment is already submitted
   const alreadySubmittedRecord = useMemo(() => {
@@ -77,11 +87,12 @@ export default function ProjectSubmissionForm({
         formRef.current.reset();
         formRef.current.dispatchEvent(new Event('reset', { bubbles: true }));
       }
+      router.refresh();
       onSuccess?.();
     } else if (state && !state.success && state.message) {
       toast.error(state.message);
     }
-  }, [state, startCooldown, onSuccess]);
+  }, [state, startCooldown, router, onSuccess]);
 
   return (
     <Card className="border border-border/80 shadow-md overflow-hidden bg-card/60 backdrop-blur-sm">
@@ -134,14 +145,30 @@ export default function ProjectSubmissionForm({
                 disabled={isPending}
               >
                 <SelectTrigger className="w-full h-10 text-xs">
-                  <SelectValue placeholder="Select an assignment" />
+                  <SelectValue
+                    placeholder={
+                      assignments.length === 0
+                        ? 'No assignments available'
+                        : 'Select an assignment'
+                    }
+                  >
+                    {selectedAssignment
+                      ? `${selectedAssignment.title} (Max: ${selectedAssignment.maxScore} marks)`
+                      : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {assignments.map((assignment) => (
-                    <SelectItem key={assignment.id} value={assignment.id}>
-                      {assignment.title} (Max: {assignment.maxScore} marks)
+                  {assignments.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No assignments available for your batch
                     </SelectItem>
-                  ))}
+                  ) : (
+                    assignments.map((assignment) => (
+                      <SelectItem key={assignment.id} value={assignment.id}>
+                        {assignment.title} (Max: {assignment.maxScore} marks)
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {selectedAssignment && (
@@ -260,7 +287,12 @@ export default function ProjectSubmissionForm({
 
             <Button
               type="submit"
-              disabled={isPending || isCoolingDown || Boolean(alreadySubmittedRecord)}
+              disabled={
+                isPending ||
+                isCoolingDown ||
+                Boolean(alreadySubmittedRecord) ||
+                assignments.length === 0
+              }
               className="min-w-44 h-10 font-semibold shadow-sm"
             >
               {isPending ? (
@@ -272,6 +304,8 @@ export default function ProjectSubmissionForm({
                 `Please wait (${remainingSeconds}s)`
               ) : alreadySubmittedRecord ? (
                 'Already Submitted'
+              ) : assignments.length === 0 ? (
+                'No Assignment to Submit'
               ) : (
                 <>
                   <Send className="mr-2 size-4" />

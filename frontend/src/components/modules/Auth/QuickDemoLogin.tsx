@@ -29,16 +29,16 @@ export default function QuickDemoLogin({
           Instant Access
         </Badge>
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
           disabled={disabled}
           onClick={() => onSelectDemo('student@gmail.com', '123456')}
-          className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
+          className="h-8 justify-start px-2 sm:px-2.5 border-border bg-card/80 text-[11.5px] sm:text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer whitespace-nowrap"
         >
-          🎓 <span className="ml-1 truncate">Student Demo</span>
+          🎓 <span className="ml-1">Student Demo</span>
         </Button>
 
         <Button
@@ -47,9 +47,9 @@ export default function QuickDemoLogin({
           size="sm"
           disabled={disabled}
           onClick={() => onSelectDemo('mentor@gmail.com', '123456')}
-          className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
+          className="h-8 justify-start px-2 sm:px-2.5 border-border bg-card/80 text-[11.5px] sm:text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer whitespace-nowrap"
         >
-          👨‍🏫 <span className="ml-1 truncate">Mentor Demo</span>
+          👨‍🏫 <span className="ml-1">Mentor Demo</span>
         </Button>
 
         <Button
@@ -58,9 +58,9 @@ export default function QuickDemoLogin({
           size="sm"
           disabled={disabled}
           onClick={() => onSelectDemo('admin@gmail.com', '123456')}
-          className="h-8 justify-start border-border bg-card/80 text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer"
+          className="h-8 justify-start px-2 sm:px-2.5 border-border bg-card/80 text-[11.5px] sm:text-xs font-medium hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all cursor-pointer whitespace-nowrap"
         >
-          🛡️ <span className="ml-1 truncate">Admin Demo</span>
+          🛡️ <span className="ml-1">Admin Demo</span>
         </Button>
 
         <Button
@@ -69,9 +69,9 @@ export default function QuickDemoLogin({
           size="sm"
           disabled={disabled}
           onClick={() => onSelectDemo('newmentor@gmail.com', '123456')}
-          className="h-8 justify-start border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400 hover:border-amber-500/50 hover:bg-amber-500/20 transition-all cursor-pointer col-span-full sm:col-span-3"
+          className="h-8 justify-start px-2.5 border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400 hover:border-amber-500/50 hover:bg-amber-500/20 transition-all cursor-pointer col-span-full sm:col-span-3 whitespace-nowrap"
         >
-          ⏳ <span className="ml-1 truncate">First-Time Mentor (Needs Password Change)</span>
+          ⏳ <span className="ml-1">First-Time Mentor (Needs Password Change)</span>
         </Button>
       </div>
     </div>

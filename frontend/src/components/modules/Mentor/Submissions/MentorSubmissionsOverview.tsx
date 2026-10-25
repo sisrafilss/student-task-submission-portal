@@ -1,7 +1,5 @@
-import {
-  getAvailableAssignments,
-  getMentorSubmissionStats,
-} from '@/services/submissions/submissionManagement';
+import { getAvailableAssignments } from '@/services/submissions/submissionManagement';
+import { getMentorSubmissionStats } from '@/services/submissions/mentorSubmissionManagement';
 import React from 'react';
 import MentorSubmissionsHeader from './MentorSubmissionsHeader';
 import MentorSubmissionStatsCards from './MentorSubmissionStatsCards';

@@ -3,7 +3,10 @@ import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { SubmissionService } from './submission.service';
-import { submissionFilterableFields } from './submission.constant';
+import {
+  submissionFilterableFields,
+  studentSubmissionFilterableFields,
+} from './submission.constant';
 
 const pick = <T extends Record<string, unknown>, K extends keyof T>(
   obj: T,
@@ -37,6 +40,7 @@ const submitAssignment = catchAsync(async (req: Request, res: Response) => {
 
 const getMySubmissions = catchAsync(async (req: Request, res: Response) => {
   const studentId = req.user!.id;
+  const filters = pick(req.query as Record<string, unknown>, studentSubmissionFilterableFields);
   const paginationOptions = pick(req.query as Record<string, unknown>, [
     'page',
     'limit',
@@ -44,7 +48,7 @@ const getMySubmissions = catchAsync(async (req: Request, res: Response) => {
     'sortOrder',
   ]);
 
-  const result = await SubmissionService.getMySubmissions(studentId, paginationOptions);
+  const result = await SubmissionService.getMySubmissions(studentId, filters, paginationOptions);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -52,6 +56,18 @@ const getMySubmissions = catchAsync(async (req: Request, res: Response) => {
     message: 'My submissions retrieved successfully',
     meta: result.meta,
     data: result.data,
+  });
+});
+
+const getStudentStats = catchAsync(async (req: Request, res: Response) => {
+  const studentId = req.user!.id;
+  const result = await SubmissionService.getStudentStats(studentId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Student submission stats retrieved successfully',
+    data: result,
   });
 });
 
@@ -146,5 +162,6 @@ export const SubmissionController = {
   getAllSubmissions,
   getSingleSubmission,
   getMentorStats,
+  getStudentStats,
 };
 

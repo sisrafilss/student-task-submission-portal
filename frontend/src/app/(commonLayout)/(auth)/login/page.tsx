@@ -16,7 +16,7 @@ export default function LoginPage() {
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-md sm:max-w-lg space-y-6">
         {/* Clean Modern Login Card using official shadcn Card components */}
         <Card className="border-border/80 bg-card/85 shadow-2xl shadow-primary/5 backdrop-blur-xl rounded-2xl border">
           <CardHeader className="text-center space-y-1.5 pb-4">

@@ -9,6 +9,8 @@ import {
   IAssignMentorPayload,
   IReviewSubmissionPayload,
   ISubmissionFilterRequest,
+  IStudentSubmissionFilterRequest,
+  IStudentSubmissionStats,
 } from './submission.interface';
 
 const submitAssignment = async (
@@ -23,13 +25,34 @@ const submitAssignment = async (
 
 const getMySubmissions = async (
   studentId: string,
-  paginationOptions: IPaginationOptions
+  filters: IStudentSubmissionFilterRequest = {},
+  paginationOptions: IPaginationOptions = {}
 ) => {
   const { page, limit, skip, sortBy, sortOrder } = calculatePagination(paginationOptions);
+  const { searchTerm, status, assignmentId } = filters;
 
-  const whereConditions: Prisma.SubmissionWhereInput = {
-    studentId,
-  };
+  const andConditions: Prisma.SubmissionWhereInput[] = [{ studentId }];
+
+  if (status) {
+    andConditions.push({ status: status as Prisma.EnumSubmissionStatusFilter });
+  }
+
+  if (assignmentId) {
+    andConditions.push({ assignmentId });
+  }
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: [
+        { repoUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { liveUrl: { contains: searchTerm, mode: 'insensitive' } },
+        { notes: { contains: searchTerm, mode: 'insensitive' } },
+        { assignment: { title: { contains: searchTerm, mode: 'insensitive' } } },
+      ],
+    });
+  }
+
+  const whereConditions: Prisma.SubmissionWhereInput = { AND: andConditions };
 
   const [total, data] = await Promise.all([
     prisma.submission.count({ where: whereConditions }),
@@ -152,6 +175,9 @@ const reviewSubmission = async (
 ) => {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
+    include: {
+      assignment: { select: { id: true, title: true, totalMarks: true } },
+    },
   });
 
   if (!submission) {
@@ -162,6 +188,17 @@ const reviewSubmission = async (
     throw new ApiError(
       httpStatus.FORBIDDEN,
       'You are not authorized to review this submission'
+    );
+  }
+
+  if (
+    payload.marks !== undefined &&
+    submission.assignment &&
+    payload.marks > submission.assignment.totalMarks
+  ) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Marks cannot exceed maximum marks allowed (${submission.assignment.totalMarks})`
     );
   }
 
@@ -223,7 +260,7 @@ const getAllSubmissions = async (
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-        assignment: { select: { id: true, title: true } },
+        assignment: { select: { id: true, title: true, totalMarks: true, rubrics: true } },
         student: { select: { id: true, name: true, email: true } },
         mentor: { select: { id: true, name: true, email: true } },
       },
@@ -299,6 +336,24 @@ const getMentorStats = async (mentorId: string) => {
   };
 };
 
+const getStudentStats = async (studentId: string): Promise<IStudentSubmissionStats> => {
+  const [totalSubmissions, totalPending, totalEvaluated] = await Promise.all([
+    prisma.submission.count({ where: { studentId } }),
+    prisma.submission.count({
+      where: { studentId, status: { in: ['PENDING', 'UNDER_REVIEW'] } },
+    }),
+    prisma.submission.count({
+      where: { studentId, status: { in: ['APPROVED', 'REJECTED'] } },
+    }),
+  ]);
+
+  return {
+    totalSubmissions,
+    totalPending,
+    totalEvaluated,
+  };
+};
+
 export const SubmissionService = {
   submitAssignment,
   getMySubmissions,
@@ -307,5 +362,6 @@ export const SubmissionService = {
   getAllSubmissions,
   getSingleSubmission,
   getMentorStats,
+  getStudentStats,
 };
 

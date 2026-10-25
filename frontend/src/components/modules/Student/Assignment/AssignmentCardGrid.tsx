@@ -80,6 +80,11 @@ export default function AssignmentCardGrid({ assignments }: AssignmentCardGridPr
           setDetailOpen(false);
           setSelectedAssignment(null);
         }}
+        onSubmit={(assignment) => {
+          setDetailOpen(false);
+          setSelectedAssignment(null);
+          handleSubmitAssignment(assignment);
+        }}
       />
 
       {/* Direct Student Submission Modal */}

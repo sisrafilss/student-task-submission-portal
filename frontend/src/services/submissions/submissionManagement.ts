@@ -1,20 +1,24 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { serverFetch } from '@/lib/server-fetch';
 import { zodValidator } from '@/lib/zodValidator';
 import { IActionResult } from '@/types/action.interface';
 import {
   IAssignment,
-  IMentorSubmissionStats,
+  IStudentSubmissionStats,
   ISubmission,
   ISubmissionListResponse,
 } from '@/types/submission.interface';
 import { submissionValidationSchema } from '@/zod/submission.validation';
 import { initialSubmissions, mockAssignments } from './mockSubmissions';
-
-const submissionsStore: ISubmission[] = [...initialSubmissions];
-const rateLimitStore = new Map<string, number>();
-const COOLDOWN_WINDOW_MS = 60 * 1000;
+import {
+  COOLDOWN_WINDOW_MS,
+  mapAssignment,
+  mapSubmission,
+  rateLimitStore,
+  submissionsStore,
+} from './submissionHelpers';
 
 export const resetSubmissionsStoreForTesting = async () => {
   submissionsStore.length = 0;
@@ -30,43 +34,71 @@ export const getAvailableAssignments = async (): Promise<{
     if (res.ok) {
       const result = await res.json();
       if (result.success && Array.isArray(result.data)) {
-        const mapped: IAssignment[] = result.data.map((item: {
-          id: string;
-          title: string;
-          totalMarks: number;
-          batchId: string;
-          status: string;
-          deadline: string;
-          description?: string;
-        }) => ({
-          id: item.id,
-          title: item.title,
-          courseTrack: 'Full Stack Web',
-          batchId: item.batchId,
-          batchName: item.batchId,
-          deadline: item.deadline,
-          maxScore: item.totalMarks,
-          status: (item.status === 'PUBLISHED' ? 'OPEN' : item.status) as IAssignment['status'],
-          description: item.description || '',
-          requirements: [],
-          rubrics: [],
-        }));
-        return { success: true, data: mapped };
+        return { success: true, data: result.data.map(mapAssignment) };
       }
     } else {
       return { success: true, data: mockAssignments };
     }
   } catch {
-    // fallback if unauthenticated / offline / unit test harness
     return { success: true, data: mockAssignments };
   }
   return { success: true, data: [] };
+};
+
+export const getStudentAvailableAssignments = async (): Promise<{
+  success: boolean;
+  data: IAssignment[];
+}> => {
+  try {
+    const res = await serverFetch.get('/assignments/my-batch', { cache: 'no-store' });
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && Array.isArray(result.data)) {
+        return { success: true, data: result.data.map(mapAssignment) };
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return { success: true, data: [] };
+};
+
+export const getStudentSubmissionStats = async (): Promise<IStudentSubmissionStats> => {
+  try {
+    const res = await serverFetch.get('/submissions/student-stats', { cache: 'no-store' });
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.data) {
+        return {
+          totalSubmissions: result.data.totalSubmissions ?? 0,
+          totalPending: result.data.totalPending ?? 0,
+          totalEvaluated: result.data.totalEvaluated ?? 0,
+        };
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return {
+    totalSubmissions: 0,
+    totalPending: 0,
+    totalEvaluated: 0,
+  };
 };
 
 export const checkAssignmentSubmissionStatus = async (
   assignmentId: string,
   studentId = 'std-1'
 ): Promise<{ alreadySubmitted: boolean; existingSubmission?: ISubmission }> => {
+  try {
+    const res = await getStudentSubmissions();
+    const existing = res.data.find((s) => s.assignmentId === assignmentId);
+    if (existing) {
+      return { alreadySubmitted: true, existingSubmission: existing };
+    }
+  } catch {
+    // fallback
+  }
   const existing = submissionsStore.find((s) => s.studentId === studentId && s.assignmentId === assignmentId);
   return { alreadySubmitted: Boolean(existing), existingSubmission: existing };
 };
@@ -75,6 +107,31 @@ export const getStudentSubmissions = async (
   queryString = '',
   studentId = 'std-1'
 ): Promise<ISubmissionListResponse> => {
+  try {
+    const cleanQuery = queryString.startsWith('?') ? queryString.slice(1) : queryString;
+    const res = await serverFetch.get(`/submissions/my-submissions?${cleanQuery}`, {
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && Array.isArray(result.data)) {
+        const mappedData = result.data.map(mapSubmission);
+        return {
+          success: true,
+          data: mappedData,
+          meta: {
+            page: result.meta?.page || 1,
+            limit: result.meta?.limit || 10,
+            total: result.meta?.total ?? mappedData.length,
+            totalPage: result.meta?.totalPages || 1,
+          },
+        };
+      }
+    }
+  } catch {
+    // fallback for offline/unit test runner
+  }
+
   const searchParams = new URLSearchParams(queryString);
   const searchTerm = searchParams.get('searchTerm')?.toLowerCase().trim() || '';
   const status = searchParams.get('status')?.trim() || '';
@@ -147,6 +204,8 @@ export const submitProject = async (
     if (backendRes.ok) {
       const backendData = await backendRes.json();
       if (backendData.success) {
+        revalidatePath('/student/submissions');
+        revalidatePath('/student/assignments');
         return {
           success: true,
           message: backendData.message || 'Project submitted successfully!',
@@ -188,13 +247,23 @@ export const submitProject = async (
   const assignmentInfo = mockAssignments.find((a) => a.id === payload.assignmentId);
   const newSubmission: ISubmission = {
     id: `sub-${Date.now()}`,
-    studentId, studentName, studentEmail,
+    studentId,
+    studentName,
+    studentEmail,
     assignmentId: payload.assignmentId,
     assignmentTitle: assignmentInfo?.title || 'Course Assignment Project',
-    projectName: payload.projectName, repoUrl: payload.repoUrl, liveUrl: payload.liveUrl,
-    description: payload.description, remarks: payload.remarks,
-    status: 'PENDING', score: null, feedback: null, evaluatedBy: null, evaluatedAt: null,
-    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    projectName: payload.projectName,
+    repoUrl: payload.repoUrl,
+    liveUrl: payload.liveUrl,
+    description: payload.description,
+    remarks: payload.remarks,
+    status: 'PENDING',
+    score: null,
+    feedback: null,
+    evaluatedBy: null,
+    evaluatedAt: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   submissionsStore.unshift(newSubmission);
@@ -211,180 +280,18 @@ export const resetRateLimitForTesting = async (studentId = 'std-1') => {
   rateLimitStore.delete(studentId);
 };
 
-export const getMentorSubmissionStats = async (): Promise<IMentorSubmissionStats> => {
+export const getAssignmentSubmissions = async (
+  assignmentId: string
+): Promise<{ success: boolean; data: ISubmission[] }> => {
   try {
-    const res = await serverFetch.get('/submissions/mentor-stats', { cache: 'no-store' });
-    if (res.ok) {
-      const result = await res.json();
-      if (result.success && result.data) {
-        return {
-          totalSubmissions: result.data.totalSubmissions ?? 0,
-          totalPending: result.data.totalPending ?? 0,
-          totalApproved: result.data.totalApproved ?? 0,
-          totalRejected: result.data.totalRejected ?? 0,
-          averageScore: result.data.averageScore ?? 0,
-        };
-      }
-    }
-  } catch {
-    // fallback for unit test harness
-  }
-
-  const totalSubmissions = submissionsStore.length;
-  const totalPending = submissionsStore.filter((s) => s.status === 'PENDING' || s.status === 'UNDER_REVIEW').length;
-  const totalApproved = submissionsStore.filter((s) => s.status === 'APPROVED' || s.status === 'EVALUATED').length;
-  const totalRejected = submissionsStore.filter((s) => s.status === 'REJECTED').length;
-  return { totalSubmissions, totalPending, totalApproved, totalRejected, averageScore: 88 };
-};
-
-export const getMentorSubmissions = async (
-  queryString = ''
-): Promise<ISubmissionListResponse> => {
-  // 1. Try real backend
-  try {
-    const res = await serverFetch.get(`/submissions/assigned?${queryString}`, { cache: 'no-store' });
+    const res = await serverFetch.get(`/submissions?assignmentId=${assignmentId}&limit=100`, { cache: 'no-store' });
     if (res.ok) {
       const result = await res.json();
       if (result.success && Array.isArray(result.data)) {
-        const mappedData: ISubmission[] = result.data.map((item: {
-          id: string;
-          student?: { id: string; name: string; email: string };
-          assignment?: { id: string; title: string; totalMarks: number };
-          repoUrl: string;
-          liveUrl?: string;
-          notes?: string;
-          status: string;
-          marks?: number;
-          feedback?: string;
-          submittedAt?: string;
-          createdAt?: string;
-          updatedAt?: string;
-        }) => ({
-          id: item.id,
-          studentId: item.student?.id || '',
-          studentName: item.student?.name || 'Student',
-          studentEmail: item.student?.email || '',
-          assignmentId: item.assignment?.id || '',
-          assignmentTitle: item.assignment?.title || 'Course Assignment',
-          projectName: item.assignment?.title || 'Project Deliverable',
-          repoUrl: item.repoUrl,
-          liveUrl: item.liveUrl || '',
-          description: item.notes || '',
-          remarks: item.notes || '',
-          status: (item.status === 'APPROVED' ? 'APPROVED' : item.status) as ISubmission['status'],
-          score: item.marks ?? null,
-          feedback: item.feedback ?? null,
-          maxScore: item.assignment?.totalMarks || 100,
-          createdAt: item.submittedAt || item.createdAt || new Date().toISOString(),
-          updatedAt: item.updatedAt || new Date().toISOString(),
-        }));
-
-        return {
-          success: true,
-          data: mappedData,
-          meta: {
-            page: result.meta?.page || 1,
-            limit: result.meta?.limit || 10,
-            total: result.meta?.total ?? mappedData.length,
-            totalPage: result.meta?.totalPages || 1,
-          },
-        };
+        return { success: true, data: result.data.map(mapSubmission) };
       }
     }
-  } catch {
-    // fallback
-  }
-
-  // 2. Fallback to local store for unit tests
-  const searchParams = new URLSearchParams(queryString);
-  const searchTerm = searchParams.get('searchTerm')?.toLowerCase().trim() || '';
-  const status = searchParams.get('status')?.trim() || '';
-  const assignmentId = searchParams.get('assignmentId')?.trim() || '';
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const limit = Math.max(1, parseInt(searchParams.get('limit') || '8', 10));
-
-  let filtered = [...submissionsStore];
-  if (searchTerm) {
-    filtered = filtered.filter(
-      (s) =>
-        s.id.toLowerCase().includes(searchTerm) ||
-        s.studentName.toLowerCase().includes(searchTerm) ||
-        s.assignmentTitle.toLowerCase().includes(searchTerm) ||
-        s.repoUrl.toLowerCase().includes(searchTerm)
-    );
-  }
-  if (status && status !== 'ALL') {
-    filtered = filtered.filter((s) => s.status.toUpperCase() === status.toUpperCase());
-  }
-  if (assignmentId && assignmentId !== 'ALL') {
-    filtered = filtered.filter((s) => s.assignmentId === assignmentId);
-  }
-
-  const total = filtered.length;
-  const startIndex = (page - 1) * limit;
-  return {
-    success: true,
-    data: filtered.slice(startIndex, startIndex + limit),
-    meta: { page, limit, total, totalPage: Math.ceil(total / limit) || 1 },
-  };
-};
-
-export const reviewSubmission = async (
-  _prevState: IActionResult | null,
-  formData: FormData
-): Promise<IActionResult> => {
-  const submissionId = formData.get('submissionId')?.toString() || '';
-  const actionType = formData.get('actionType')?.toString() || formData.get('status')?.toString() || 'APPROVE';
-  const status = actionType === 'REJECT' ? 'REJECTED' : (actionType === 'APPROVE' ? 'APPROVED' : actionType);
-  const score = Number(formData.get('score') || 0);
-  const feedback = formData.get('feedback')?.toString() || '';
-  const rejectionReason = formData.get('rejectionReason')?.toString() || '';
-
-  // 1. Try real backend
-  try {
-    const res = await serverFetch.patch(`/submissions/${submissionId}/review`, {
-      body: JSON.stringify({
-        status: status === 'EVALUATED' ? 'APPROVED' : status,
-        marks: status === 'REJECTED' ? 0 : score,
-        feedback: rejectionReason ? `${rejectionReason}: ${feedback}` : feedback,
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
-        return {
-          success: true,
-          message: status === 'APPROVED' ? 'Submission approved successfully!' : 'Submission rejected successfully',
-          data: data.data,
-        };
-      }
-    }
-  } catch {
-    // fallback
-  }
-
-  // 2. Fallback to local store for unit tests
-  const index = submissionsStore.findIndex((s) => s.id === submissionId);
-  if (index === -1) {
-    return {
-      success: false,
-      message: 'Submission not found',
-    };
-  }
-
-  submissionsStore[index] = {
-    ...submissionsStore[index],
-    status: status as ISubmission['status'],
-    score: status === 'REJECTED' ? 0 : score,
-    feedback,
-    rejectionReason: rejectionReason || undefined,
-    evaluatedBy: 'Mentor',
-    evaluatedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  return {
-    success: true,
-    message: status === 'APPROVED' ? 'Submission approved successfully!' : 'Submission rejected successfully',
-  };
+  } catch { /* fallback */ }
+  const filtered = submissionsStore.filter((s) => s.assignmentId === assignmentId);
+  return { success: true, data: filtered };
 };

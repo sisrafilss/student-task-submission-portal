@@ -40,7 +40,8 @@ export default function MentorRubricScoringSection({
 
   useEffect(() => {
     onScoreChange(totalAwarded, scores);
-  }, [totalAwarded, scores, onScoreChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleScoreChange = (index: number, valueStr: string) => {
     const val = valueStr === '' ? 0 : Math.max(0, parseInt(valueStr, 10) || 0);
@@ -51,6 +52,8 @@ export default function MentorRubricScoringSection({
       marksAwarded: Math.min(val, max),
     };
     setScores(updated);
+    const newTotal = updated.reduce((sum, item) => sum + (item.marksAwarded || 0), 0);
+    onScoreChange(newTotal, updated);
   };
 
   return (
